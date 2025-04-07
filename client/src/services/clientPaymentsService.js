@@ -56,4 +56,19 @@ export const verifyClientPayment = async (data) => {
     return res.data;
 }
 
+export const generateInviteLink = async (data) => {
+    const res = await axiosInstance({
+        method: 'POST',
+        url: `/users/generate-invite-link`,
+        data
+    });
+    return res.data;
+}
 
+export const getCanInviteDietitian = async () => {
+    const res = await axiosInstance({
+        method: 'GET',
+        url: `/users/can-invite-dietitian`,
+    });
+    return res.data;
+}

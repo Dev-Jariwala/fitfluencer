@@ -8,15 +8,18 @@ import Theme from "../ui/theme/theme";
 import { Button } from "../ui/button";
 import { logoutUser } from "@/services/userService";
 import toast from "react-hot-toast";
+import { useAuthStore } from "@/store/commonStore";
 
 const Navbar = () => {
   const { toggleSidebar } = useSidebar();
-  const navigate = useNavigate();
+  const logout = useAuthStore(state => state.logout);
   const logoutUserMutation = useMutation({
     mutationFn: logoutUser,
     onSuccess: (data) => {
       toast.success(data?.data?.message || 'Logout successful');
-      return navigate('/login');
+      logout();
+      window.location.href = '/login';
+      return 
     },
     onError: (error) => {
       toast.error(error?.response?.data?.message || 'An error occurred');
@@ -38,7 +41,7 @@ const Navbar = () => {
               <AvatarFallback className='border border-input bg-background hover:bg-accent hover:text-accent-foreground' >DA</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => logoutUserMutation.mutate()} >Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

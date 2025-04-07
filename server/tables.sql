@@ -18,12 +18,26 @@ CREATE TABLE users (
 	email VARCHAR(100) NOT NULL UNIQUE,
 	phone VARCHAR(20) NOT NULL UNIQUE,
 	password VARCHAR(255) NOT NULL,
+    is_registered BOOLEAN NOT NULL DEFAULT FALSE,
 	-- role_id UUID NOT NULL REFERENCES roles(id),
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_by UUID REFERENCES users(id),
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID REFERENCES users(id),
     parent_id UUID REFERENCES users(id)
+);
+
+-- Tokens table
+CREATE TABLE tokens (
+    sr_no SERIAL PRIMARY KEY,
+    id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    token TEXT UNIQUE NOT NULL,
+    token_type VARCHAR(50) NOT NULL, -- e.g., 'email_verification', 'phone_verification', 'password_reset', 'magic_link', 'invite_client
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES users(id),
+    expires_at TIMESTAMP NOT NULL,
+    is_consumed BOOLEAN DEFAULT FALSE,
+    additional_data JSONB, -- Store extra data like phone number, or other data
 );
 
 -- Roles table
@@ -66,12 +80,18 @@ CREATE TABLE client_payments (
     client_id UUID NOT NULL REFERENCES users(id),
     plan_id UUID NOT NULL REFERENCES plans(id),
     amount DECIMAL(10,2) NOT NULL,
-    currency VARCHAR(3) NOT NULL DEFAULT 'INR', -- Explicitly setting INR
-    payment_status VARCHAR(20) NOT NULL CHECK (payment_status IN ('success')),
-    transaction_id VARCHAR(255) NOT NULL UNIQUE, -- Razorpay Payment ID
-    payment_method VARCHAR(50), -- e.g., UPI, Card, Net Banking
+    currency VARCHAR(3) NOT NULL DEFAULT 'INR',
+    order_id VARCHAR(255) NOT NULL,
+    receipt VARCHAR(255) NOT NULL,
+    payment_id VARCHAR(255) UNIQUE, -- Razorpay Payment ID
+    status VARCHAR(20) NOT NULL CHECK (status IN ('captured', 'failed', 'created')),
+    signature TEXT, -- Stored for record keeping/verification audit
+    fee DECIMAL(10,2),
+    tax DECIMAL(10,2),
+    payment_method VARCHAR(100), -- E.g., UPI, Card, Net Banking
+    created_by UUID REFERENCES users(id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_by UUID REFERENCES users(id)
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Commission Distribution table

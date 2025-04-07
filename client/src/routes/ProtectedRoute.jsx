@@ -1,40 +1,45 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuthStore } from "@/store/commonStore";
+import { useAuthStore, useRolesStore } from "@/store/commonStore";
+import { getRoles } from "@/services/rolesService";
 import { useQuery } from "@tanstack/react-query";
-import { authenticateUser } from "@/services/userService";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
-export const ProtectedRoute = () => {
-  const setToken = useAuthStore(state => state.setToken);
-  const setData = useAuthStore(state => state.setData);
+export const ProtectedRoute = ({ type, isAuthenticated, authenticateType }) => {
+  const { data } = useAuthStore();
+  const setRoles = useRolesStore(state => state.setRoles);
 
-  const { data: userAuthenticated, isLoading, error } = useQuery({
-    queryKey: ['authenticateUser'],
+  const { data: roles, isLoading: isLoadingRoles, error: errorRoles } = useQuery({
+    queryKey: ['roles'],
     queryFn: async () => {
-      const data = await authenticateUser();
-      if (data?.isAuthenticated) {
-        setToken(data?.token);
-        setData(data?.data);
-      }
-      return data;
+      const data = await getRoles();
+      setRoles(data?.roles);
+      return data?.roles;
     },
-    // enabled: false
+    enabled: !!data?.isAuthenticated
   });
 
   useEffect(() => {
-    if (error) {
-      toast.error(error.message);
+    if (errorRoles) {
+      toast.error(`Error fetching roles: ${JSON.stringify(errorRoles)}`);
     }
-  }, [error]);
+  }, [errorRoles]);
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center h-64">
-      <div className="basic-loader"></div>
-    </div>
-  }
-  if (!userAuthenticated?.isAuthenticated) {
+  if (authenticateType === 'authenticated' && !isAuthenticated) {
     return <Navigate to="/login" />
   }
+
+  if (authenticateType === 'not-authenticated' && isAuthenticated) {
+    return <Navigate to="/" />
+  }
+
+  if (type === 'not-registered' && data?.is_registered) {
+    return <Navigate to="/" />
+  }
+
+  if (type === 'registered' && !data?.is_registered) {
+    return <Navigate to="/plans" />
+  }
+
   return (
     <Outlet />
   )

@@ -11,3 +11,15 @@ winston.loggers.add("error-logger", {
     service: "error-logger",
   },
 });
+
+winston.loggers.add("payment-logger", {
+  level: "info",
+  format: combine(timestamp(), json(), prettyPrint()),
+  transports: [
+    new winston.transports.File({ filename: "payment.log", level: "info" }),
+    new winston.transports.Console({ level: "info" }),
+  ],
+  defaultMeta: {
+    service: "payment-logger",
+  },
+});

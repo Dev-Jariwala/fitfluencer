@@ -2,6 +2,7 @@
 import passport from "passport";
 import passportLocal from "passport-local";
 import { query } from "../utils/query.js";
+import bcrypt from "bcrypt";
 const LocalStrategy = passportLocal.Strategy;
 
 passport.use(
@@ -18,11 +19,12 @@ passport.use(
           "SELECT * FROM users WHERE username = $1 OR email = $1 OR phone = $1",
           [loginId]
         );
+        console.log("user", user);
         if (!user) {
           return done(null, false, { message: "Incorrect login id." });
         }
 
-        if (user.password !== password) {
+        if (!bcrypt.compareSync(password, user.password)) {
           return done(null, false, { message: "Incorrect password." });
         }
 

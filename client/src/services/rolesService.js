@@ -32,54 +32,10 @@ axiosInstance.interceptors.response.use(
     }
 );
 
-export const authenticateUser = async () => {
+export const getRoles = async () => {
     const res = await axiosInstance({
         method: 'GET',
-        url: `/users/authenticate`
+        url: `/roles`
     });
     return res.data;
-}
-
-export const loginUser = async (data) => {
-    const res = await axiosInstance({
-        method: 'POST',
-        url: `/users/login`,
-        data
-    });
-    return res;
-}
-
-export const logoutUser = async () => {
-    const res = await axiosInstance({
-        method: 'POST',
-        url: `/users/logout`
-    });
-    return res;
-}
-
-export const generateInviteLink = async (data) => {
-    const res = await axiosInstance({
-        method: 'POST',
-        url: `/users/generate-invite-link`,
-        data
-    });
-    return res.data;
-}
-
-export const verifyInviteLink = async (data) => {
-    const res = await axiosInstance({
-        method: 'POST',
-        url: `/users/verify-invite-link`,
-        data
-    });
-    return res;
-}
-
-export const registerUser = async (data) => {
-    const res = await axiosInstance({
-        method: 'POST',
-        url: `/users/register`,
-        data
-    });
-    return res;
 }

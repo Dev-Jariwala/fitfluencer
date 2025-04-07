@@ -39,7 +39,8 @@ const LoginForm = ({ loginMethod }) => {
             toast.success(res?.data?.message || "Login successful");
             setToken(res?.data?.token || null);
             setData(res?.data?.data || null);
-            navigate('/', { replace: true });
+            // navigate('/', { replace: true });
+            window.location.href = '/';
         },
         onError: () => {
             toast.error("Login failed");

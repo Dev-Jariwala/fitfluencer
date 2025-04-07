@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -23,6 +24,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.14.1",
     "razorpay": "^2.9.6",
+    "uuid": "^11.1.0",
     "winston": "^3.17.0"
   }
 }
