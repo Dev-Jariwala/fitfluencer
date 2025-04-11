@@ -1,10 +1,11 @@
 import React from 'react';
-import { UserIcon, MapPinIcon, MoveIcon, CheckCircle2 } from 'lucide-react';
+import { UserIcon, MapPinIcon, MoveIcon, CheckCircle2, KeyIcon } from 'lucide-react';
 
 const FormStepper = ({ steps, currentStep, setCurrentStep, isStepComplete }) => {
   // Map step ids to their corresponding icons
   const getStepIcon = (id) => {
     const icons = {
+      'account': <KeyIcon className="w-5 h-5" />,
       'personal': <UserIcon className="w-5 h-5" />,
       'physical': <MoveIcon className="w-5 h-5" />,
       'address': <MapPinIcon className="w-5 h-5" />

@@ -14,8 +14,7 @@ export const ProtectedRoute = ({ type, isAuthenticated, authenticateType }) => {
       const data = await getRoles();
       setRoles(data?.roles);
       return data?.roles;
-    },
-    enabled: !!data?.isAuthenticated
+    }
   });
 
   useEffect(() => {

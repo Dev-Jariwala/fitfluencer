@@ -10,7 +10,7 @@ const router = express.Router();
 router.post("/", authUser, rolesValidators.validateCreateRole, validate, rolesControllers.createRole);
 
 // get roles
-router.get("/", authUser, rolesControllers.getRoles);
+router.get("/", rolesControllers.getRoles);
 
 // get role by id
 router.get("/:id", authUser, rolesValidators.validateParamId, validate, rolesControllers.getRoleById);

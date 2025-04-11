@@ -1,13 +1,19 @@
 import React from 'react';
-import { UserIcon, PhoneIcon, AtSignIcon, CalendarIcon } from 'lucide-react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { UserIcon, AtSignIcon, CalendarIcon } from 'lucide-react';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import StepWrapper from './StepWrapper';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import DatePicker from '@/components/ui/date-picker';
 
 const PersonalInfoStep = ({ form, animationDirection }) => {
   return (
-    <StepWrapper 
+    <StepWrapper
       title="Personal Information"
       description="Enter your basic personal details"
       icon={<UserIcon className="w-6 h-6" />}
@@ -53,47 +59,6 @@ const PersonalInfoStep = ({ form, animationDirection }) => {
 
         <FormField
           control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="johndoe"
-                  {...field}
-                  className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
-                />
-              </FormControl>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone Number</FormLabel>
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500">
-                  <PhoneIcon className="h-4 w-4" />
-                </div>
-                <FormControl>
-                  <Input
-                    placeholder="1234567890"
-                    {...field}
-                    className="pl-10 border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
-                  />
-                </FormControl>
-              </div>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
@@ -114,43 +79,6 @@ const PersonalInfoStep = ({ form, animationDirection }) => {
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  {...field}
-                  className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
-                />
-              </FormControl>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  {...field}
-                  className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
-                />
-              </FormControl>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
-        
 
         <FormField
           control={form.control}
@@ -180,21 +108,18 @@ const PersonalInfoStep = ({ form, animationDirection }) => {
           control={form.control}
           name="dob"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Date of Birth</FormLabel>
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500">
-                  <CalendarIcon className="h-4 w-4" />
-                </div>
-                <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-                    className="pl-10 border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
-                  />
-                </FormControl>
-              </div>
-              <FormMessage className="text-red-500" />
+            <FormItem className="flex flex-col">
+              <FormLabel>Date of birth</FormLabel>
+              <FormControl>
+                <DatePicker 
+                  value={field.value ? new Date(field.value) : undefined} 
+                  onChange={(date) => field.onChange(format(date, 'yyyy-MM-dd'))}
+                />
+              </FormControl>
+              <FormDescription>
+                Your date of birth is used to calculate your age. You must be at least 15 years old.
+              </FormDescription>
+              <FormMessage />
             </FormItem>
           )}
         />

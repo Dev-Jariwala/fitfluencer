@@ -13,47 +13,66 @@ import FormStepper from './FormStepper';
 import FormNavigation from './FormNavigation';
 import { useMutation } from '@tanstack/react-query';
 import { registerUser } from '@/services/userService';
+import AccountInfoStep from './steps/AccountInfoStep';
 
 // Form validation schema
 const formSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
   username: z.string().min(3, "Username must be at least 3 characters"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+  confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters"),
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email").optional(),
   gender: z.string().min(1, "Please select a gender"),
-  dob: z.string().min(1, "Please select a date of birth"),
+  dob: z.string().min(1, "Please select a date of birth")
+    .refine((val) => {
+      const birthDate = new Date(val);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age >= 15;
+    }, "You must be at least 15 years old to register"),
   height: z.string().min(1, "Please enter your height"),
   weight: z.string().min(1, "Please enter your weight"),
   fitnessGoal: z.string().min(1, "Please select a fitness goal"),
   address: z.string().min(5, "Address must be at least 5 characters"),
   city: z.string().min(2, "City must be at least 2 characters"),
   state: z.string().min(2, "State must be at least 2 characters"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters")
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 const steps = [
+  { id: 'account', title: 'Account Info' },
   { id: 'personal', title: 'Personal Info' },
   { id: 'physical', title: 'Physical Stats' },
   { id: 'address', title: 'Address' },
 ];
 
 const RegistrationForm = ({ tokenData }) => {
-  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [animationDirection, setAnimationDirection] = useState('forward');
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
       username: "",
       phone: "",
-      email: tokenData?.email || "",
       password: "",
       confirmPassword: "",
+      firstName: "",
+      lastName: "",
+      email: tokenData?.email || "",
       gender: "",
       dob: "",
       height: "",
@@ -72,9 +91,10 @@ const RegistrationForm = ({ tokenData }) => {
   const goToNextStep = async () => {
     // Get fields for current step to validate
     const fieldsToValidate = {
-      0: ["firstName", "lastName", "username", "phone", "email", "password", "confirmPassword", "gender", "dob"],
-      1: ["height", "weight", "fitnessGoal"],
-      2: ["address", "city", "state"]
+      0: ["username", "phone", "password", "confirmPassword"],
+      1: ["firstName", "lastName", "email", "gender", "dob"],
+      2: ["height", "weight", "fitnessGoal"],
+      3: ["address", "city", "state"]
     }[currentStep];
 
     // Trigger validation for only the fields in the current step
@@ -115,9 +135,10 @@ const RegistrationForm = ({ tokenData }) => {
   // Determine if current step is complete
   const isStepComplete = (stepIndex) => {
     const fieldsToValidate = {
-      0: ["firstName", "lastName", "username", "phone", "email", "password", "confirmPassword", "gender", "dob"],
-      1: ["height", "weight", "fitnessGoal"],
-      2: ["address", "city", "state"]
+      0: ["username", "phone", "password", "confirmPassword"],
+      1: ["firstName", "lastName", "email", "gender", "dob"],
+      2: ["height", "weight", "fitnessGoal"],
+      3: ["address", "city", "state"]
     }[stepIndex];
 
     return fieldsToValidate.every(field => !errors[field] && form.getValues(field));
@@ -127,10 +148,12 @@ const RegistrationForm = ({ tokenData }) => {
   const renderStep = () => {
     switch (currentStep) {
       case 0:
-        return <PersonalInfoStep form={form} animationDirection={animationDirection} />;
+        return <AccountInfoStep form={form} animationDirection={animationDirection} />;
       case 1:
-        return <PhysicalStatsStep form={form} animationDirection={animationDirection} />;
+        return <PersonalInfoStep form={form} animationDirection={animationDirection} />;
       case 2:
+        return <PhysicalStatsStep form={form} animationDirection={animationDirection} />;
+      case 3:
         return <AddressStep form={form} animationDirection={animationDirection} />;
       default:
         return null;

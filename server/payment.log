@@ -1396,3 +1396,167 @@
   message: 'Payment captured',
   timestamp: '2025-04-07T16:03:41.013Z'
 }
+{
+  service: 'payment-logger',
+  plan_id: 'b8ae0fb1-f09c-4144-8e30-149c717b7684',
+  plan_name: 'Monthly Plan',
+  user_id: '490f12f7-5c24-4d5e-89a9-8de23caf4c36',
+  username: 'devj',
+  order: {
+    amount: 500000,
+    amount_due: 500000,
+    amount_paid: 0,
+    attempts: 0,
+    created_at: 1744042920,
+    currency: 'INR',
+    entity: 'order',
+    id: 'order_QGEQrHh4b2wOOV',
+    notes: [],
+    offer_id: null,
+    receipt: '118eca7b-1fd3-4a2b-8b9a-2fd5a7ed9be5',
+    status: 'created'
+  },
+  level: 'info',
+  message: 'Payment initiated successfully',
+  timestamp: '2025-04-07T16:22:02.231Z'
+}
+{
+  service: 'payment-logger',
+  event: 'payment.captured',
+  payload: {
+    payment: {
+      entity: {
+        id: 'pay_QGERUepgioLPKN',
+        entity: 'payment',
+        amount: 500000,
+        currency: 'INR',
+        status: 'captured',
+        order_id: 'order_QGEQrHh4b2wOOV',
+        invoice_id: null,
+        international: false,
+        method: 'card',
+        amount_refunded: 0,
+        refund_status: null,
+        captured: true,
+        description: null,
+        card_id: 'card_QGERUnX0dD8NKe',
+        card: {
+          id: 'card_QGERUnX0dD8NKe',
+          entity: 'card',
+          name: '',
+          last4: '6247',
+          network: 'MasterCard',
+          type: 'debit',
+          issuer: 'SBIN',
+          international: false,
+          emi: false,
+          sub_type: 'consumer',
+          token_iin: null
+        },
+        bank: null,
+        wallet: null,
+        vpa: null,
+        email: 'void@razorpay.com',
+        contact: '+917990176865',
+        notes: [],
+        fee: 11800,
+        tax: 1800,
+        error_code: null,
+        error_description: null,
+        error_source: null,
+        error_step: null,
+        error_reason: null,
+        acquirer_data: { auth_code: '301472' },
+        created_at: 1744042957,
+        reward: null,
+        base_amount: 500000
+      }
+    }
+  },
+  signature: 'e4617a9f905bffef656e191a1064503f1f3360159cbf8f15d4a9d06b9874349b',
+  level: 'info',
+  message: 'Payment captured',
+  timestamp: '2025-04-07T16:22:44.390Z'
+}
+{
+  service: 'payment-logger',
+  plan_id: 'b8ae0fb1-f09c-4144-8e30-149c717b7684',
+  plan_name: 'Monthly Plan',
+  user_id: 'f43eaa72-6fb5-4393-942c-30adac1712a2',
+  username: 'Dev Jariwala',
+  order: {
+    amount: 500000,
+    amount_due: 500000,
+    amount_paid: 0,
+    attempts: 0,
+    created_at: 1744389160,
+    currency: 'INR',
+    entity: 'order',
+    id: 'order_QHokc1YFPnf1vP',
+    notes: [],
+    offer_id: null,
+    receipt: '59d47b03-7463-466c-93e0-510e2fdf7cae',
+    status: 'created'
+  },
+  level: 'info',
+  message: 'Payment initiated successfully',
+  timestamp: '2025-04-11T16:32:44.134Z'
+}
+{
+  service: 'payment-logger',
+  event: 'payment.captured',
+  payload: {
+    payment: {
+      entity: {
+        id: 'pay_QHokwdg83LPjR7',
+        entity: 'payment',
+        amount: 500000,
+        currency: 'INR',
+        status: 'captured',
+        order_id: 'order_QHokc1YFPnf1vP',
+        invoice_id: null,
+        international: false,
+        method: 'card',
+        amount_refunded: 0,
+        refund_status: null,
+        captured: true,
+        description: null,
+        card_id: 'card_QHokwrf7TGc97D',
+        card: {
+          id: 'card_QHokwrf7TGc97D',
+          entity: 'card',
+          name: '',
+          last4: '6247',
+          network: 'MasterCard',
+          type: 'debit',
+          issuer: 'SBIN',
+          international: false,
+          emi: false,
+          sub_type: 'consumer',
+          token_iin: null
+        },
+        bank: null,
+        wallet: null,
+        vpa: null,
+        email: 'void@razorpay.com',
+        contact: '+917990176865',
+        notes: [],
+        fee: 11800,
+        tax: 1800,
+        error_code: null,
+        error_description: null,
+        error_source: null,
+        error_step: null,
+        error_reason: null,
+        acquirer_data: { auth_code: '554953' },
+        created_at: 1744389180,
+        reward: null,
+        base_amount: 500000
+      }
+    }
+  },
+  signature: 'f5ee642771bf8e37007ae4f0306cfcc54c2f9fb292b9c78af00c6cecef70f032',
+  level: 'info',
+  message: 'Payment captured',
+  timestamp: '2025-04-11T16:33:09.762Z'
+}
