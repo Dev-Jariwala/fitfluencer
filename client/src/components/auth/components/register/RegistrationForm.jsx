@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -14,6 +14,7 @@ import FormNavigation from './FormNavigation';
 import { useMutation } from '@tanstack/react-query';
 import { registerUser } from '@/services/userService';
 import AccountInfoStep from './steps/AccountInfoStep';
+import InviterInfo from './InviterInfo';
 
 // Form validation schema
 const formSchema = z.object({
@@ -60,6 +61,7 @@ const steps = [
 ];
 
 const RegistrationForm = ({ tokenData }) => {
+  console.log("tokenData", tokenData);
   const [currentStep, setCurrentStep] = useState(0);
   const [animationDirection, setAnimationDirection] = useState('forward');
 
@@ -72,7 +74,7 @@ const RegistrationForm = ({ tokenData }) => {
       confirmPassword: "",
       firstName: "",
       lastName: "",
-      email: tokenData?.email || "",
+      email: "",
       gender: "",
       dob: "",
       height: "",
@@ -116,20 +118,19 @@ const RegistrationForm = ({ tokenData }) => {
 
   const registerUserMutation = useMutation({
     mutationFn: registerUser,
-    onSuccess: (res) =>{
+    onSuccess: (res) => {
       const successMessage = res.data.message || 'Registration successful!';
       toast.success(successMessage);
       setTimeout(() => window.location.href = '/plans', 1500);
     },
-    onError: (error) =>{
+    onError: (error) => {
       const errorMessage = error.response.data.message || 'An error occurred';
       toast.error(errorMessage);
     }
   })
 
   const onSubmit = (data) => {
-    console.log(data);
-    registerUserMutation.mutate({...data, token: tokenData.token});
+    registerUserMutation.mutate({ ...data, token: tokenData.token });
   };
 
   // Determine if current step is complete
@@ -173,6 +174,16 @@ const RegistrationForm = ({ tokenData }) => {
       </div>
 
       <div className="p-6 md:p-8">
+        {/* Inviter Info Section */}
+        {tokenData && tokenData.created_by && tokenData.additional_data && (
+          <InviterInfo 
+            inviter={tokenData.inviter} 
+            inviteeRoleId={tokenData.additional_data.roleId} 
+          />
+        )}
+        
+        <h2 className="text-2xl font-bold text-emerald-700 mb-6">Create Your Account</h2>
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {renderStep()}

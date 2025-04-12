@@ -12,7 +12,8 @@ const TokenVerification = ({ token }) => {
   const { 
     data: verificationData, 
     isLoading, 
-    isError
+    isError,
+    error
   } = useQuery({
     queryKey: ['verifyInviteLink', token],
     queryFn: async () => {
@@ -21,19 +22,6 @@ const TokenVerification = ({ token }) => {
     },
     enabled: !!token
   });
-
-  // Check if the token is expired
-  const isTokenExpired = () => {
-    if (!token) return false;
-    
-    try {
-      const decoded = jwtDecode(token);
-      const currentTime = Date.now() / 1000;
-      return decoded.exp < currentTime;
-    } catch (error) {
-      return true;
-    }
-  };
 
   // Handle different states
   if (!token) {
@@ -44,16 +32,8 @@ const TokenVerification = ({ token }) => {
     return <LoadingState />;
   }
 
-  if (isError) {
-    return <InvalidLink message="Error verifying invitation link" />;
-  }
-
-  if (isTokenExpired()) {
-    return <ExpiredLink />;
-  }
-
-  if (!verificationData?.isVerified) {
-    return <InvalidLink message="Invalid invitation link" />;
+  if (!verificationData?.isVerified || isError) {
+    return <InvalidLink message={error?.response?.data?.message || "Invalid invitation link"} />;
   }
 
   // Pass the verified token data to the registration form

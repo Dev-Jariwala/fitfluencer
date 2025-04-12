@@ -13,6 +13,10 @@ export const validateToken = [
     body("token").notEmpty().withMessage("Token is required"),
 ];
 
+export const validateParamId = [
+    param("id").notEmpty().withMessage("ID is required").isUUID(4).withMessage("Invalid ID"),
+];
+
 export const validateRegisterUser = [
     body("token").notEmpty().withMessage("Token is required"),
     body("email").notEmpty().withMessage("Email is required").isEmail().withMessage("Invalid email"),

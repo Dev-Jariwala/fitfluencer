@@ -83,3 +83,19 @@ export const registerUser = async (data) => {
     });
     return res;
 }
+
+export const getUserById = async (userId) => {
+    const res = await axiosInstance({
+        method: 'GET',
+        url: `/users/${userId}`,
+    });
+    return res.data;
+}
+
+export const getRoles = async () => {
+    const res = await axiosInstance({
+        method: 'GET',
+        url: '/roles',
+    });
+    return res.data;
+}

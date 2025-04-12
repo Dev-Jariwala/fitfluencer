@@ -4,7 +4,7 @@ winston.loggers.add("error-logger", {
   level: "error",
   format: combine(errors({ stack: true }), timestamp(), json(), prettyPrint()),
   transports: [
-    new winston.transports.File({ filename: "error.log", level: "error" }),
+    new winston.transports.File({ filename: "logs/error.log", level: "error" }),
     new winston.transports.Console({ level: "error" }),
   ],
   defaultMeta: {
@@ -16,7 +16,7 @@ winston.loggers.add("payment-logger", {
   level: "info",
   format: combine(timestamp(), json(), prettyPrint()),
   transports: [
-    new winston.transports.File({ filename: "payment.log", level: "info" }),
+    new winston.transports.File({ filename: "logs/payment.log", level: "info" }),
     new winston.transports.Console({ level: "info" }),
   ],
   defaultMeta: {

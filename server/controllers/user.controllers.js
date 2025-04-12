@@ -65,6 +65,29 @@ export const authenticateUser = async (req, res, next) => {
   }
 };
 
+export const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userRepositories.getUserById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Get user role information
+    const userRole = await rolesRepositories.getRoleById(user.role_id);
+
+    // Remove sensitive information
+    delete user.password;
+
+    return res.status(200).json({
+      message: 'User retrieved successfully',
+      data: { ...user, role: userRole }
+    });
+  } catch (error) {
+    handleError("getUserById", res, error);
+  }
+};
 
 export const logoutUser = (req, res, next) => {
   res.clearCookie('token');
@@ -78,7 +101,9 @@ const canInviteDietitian = async ({ userId, userRoleId }) => {
   const maxChainDietitian = await configRepositories.getConfigByKey('MAX_CHAIN_DIETITIAN');
   if (!maxChainDietitian) return { success: false, message: 'Max chain dietitian not found' };
   const userDepth = await userRepositories.getUserDepth(userId);
-  if (userDepth > maxChainDietitian) return { success: false, message: 'Max chain dietitian reached' };
+  console.log("userDepth", userDepth);
+  console.log("maxChainDietitian", maxChainDietitian);
+  if (userDepth >= maxChainDietitian?.value) return { success: false, message: 'Max chain dietitian reached' };
   return { success: true, message: 'User can invite users', data: { maxChainDietitian, userDepth } };
 }
 
@@ -109,7 +134,7 @@ export const generateInviteLink = async (req, res, next) => {
     const maxChainDietitian = await configRepositories.getConfigByKey('MAX_CHAIN_DIETITIAN');
     if (!maxChainDietitian) return res.status(400).json({ message: 'Max chain dietitian not found' });
     const userDepth = await userRepositories.getUserDepth(userId);
-    if (userDepth > maxChainDietitian) return res.status(400).json({ message: 'Max chain dietitian reached' });
+    if (userDepth >= maxChainDietitian?.value) return res.status(400).json({ message: 'Max chain dietitian reached' });
 
     const expiresIn = 15 * 60 * 1000;
 
@@ -132,7 +157,13 @@ export const verifyInviteLink = async (req, res) => {
     const result = await userService.verifyInviteToken(token);
     if (!result.success) return res.status(result.statusCode).json({ message: result.message });
 
-    return res.status(result.statusCode || 200).json({ message: result.message, data: result.data, isVerified: true });
+    const inviter = await userRepositories.getUserById(result.data.created_by);
+    if (!inviter) return res.status(400).json({ message: 'Inviter not found' });
+
+    const inviterRole = await rolesRepositories.getRoleById(inviter.role_id);
+    if (!inviterRole) return res.status(400).json({ message: 'Inviter role not found' });
+
+    return res.status(result.statusCode || 200).json({ message: result.message, data: { ...result.data, inviter: { name: `${inviter.first_name} ${inviter.last_name}`, role: inviterRole.name } }, isVerified: true });
 
   } catch (error) {
     handleError("verifyInviteLink", res, error);
@@ -157,11 +188,20 @@ export const registerUser = async (req, res) => {
     const userUserName = await userRepositories.getUserByLoginId(username);
     if (userUserName) return res.status(400).json({ message: 'User with this username already exists' });
 
+    const roleId = tokenData.additional_data.roleId;
+
+    const role = await rolesRepositories.getRoleById(roleId);
+    if (!role) return res.status(400).json({ message: 'Role not found' });
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await userRepositories.createUser({ username, email, phone, firstName, lastName, password: hashedPassword, roleId: tokenData.additional_data.roleId, createdBy: tokenData.created_by, parentId: tokenData.created_by, gender, dob, height, weight, fitnessGoal, address, city, state });
+    const user = await userRepositories.createUser({ username, email, phone, firstName, lastName, password: hashedPassword, roleId: roleId, createdBy: tokenData.created_by, parentId: tokenData.created_by, gender, dob, height, weight, fitnessGoal, address, city, state });
     if (!user) return res.status(400).json({ message: 'Failed to create user' });
 
-    await userRepositories.updateToken(tokenData.id, { token: tokenData.token, token_type: 'invite', expires_at: tokenData.expires_at, is_consumed: true, additional_data: { roleId: tokenData.additional_data.roleId, children_id: user.id } });
+    await userRepositories.updateToken(tokenData.id, { token: tokenData.token, token_type: 'invite', expires_at: tokenData.expires_at, is_consumed: true, additional_data: { roleId, children_id: user.id } });
+
+    if (role.key === 'dietitian') {
+      await userRepositories.markUserRegistered(user.id);
+    }
 
     const loginToken = jwt.sign(
       { ...user },

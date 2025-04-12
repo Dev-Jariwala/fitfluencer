@@ -10,8 +10,11 @@ const router = express.Router();
 router.post("/login", userValidators.validateSignIn, validate, userControllers.loginUser);
 router.post("/logout", authUser, userControllers.logoutUser);
 router.get("/authenticate", userControllers.authenticateUser);
+
 router.post("/generate-invite-link", authUser, userValidators.validateGenerateInviteLink, validate, userControllers.generateInviteLink);
 router.post("/verify-invite-link", userValidators.validateToken, validate, userControllers.verifyInviteLink);
 router.post("/register", userValidators.validateRegisterUser, validate, userControllers.registerUser);
 router.get("/can-invite-dietitian", authUser, userControllers.getCanInviteDietitian);
+// Get user by ID
+router.get("/:id", authUser, userValidators.validateParamId, validate, userControllers.getUserById);
 export default router;
