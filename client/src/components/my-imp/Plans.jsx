@@ -31,7 +31,6 @@ const Plans = () => {
     const verifyClientPaymentMutation = useMutation({
         mutationFn: verifyClientPayment,
         onSuccess: (data) => {
-            console.log(data);
             if (data.success) {
                 toast.success('Payment verified successfully');
             } else {
@@ -39,15 +38,13 @@ const Plans = () => {
             }
         },
         onError: (error) => {
-            console.log(error);
-            toast.error(error.response.data.message);
+            toast.error(`Error verifying payment: ${JSON.stringify(error)}`);
         }
     })
 
     const createClientPaymentMutation = useMutation({
         mutationFn: createClientPayment,
         onSuccess: (data) => {
-            console.log(data);
             const paymentObject = new window.Razorpay({
                 key: 'rzp_test_DHUBFnivFtHLhP',
                 order_id: data.id,
@@ -65,8 +62,7 @@ const Plans = () => {
             paymentObject.open();
         },
         onError: (error) => {
-            console.log(error);
-            toast.error(error.response.data.message);
+            toast.error(`Error creating payment: ${JSON.stringify(error)}`);
         }
     })
 
@@ -82,7 +78,7 @@ const Plans = () => {
 
     useEffect(() => {
         if (plansError) {
-            toast.error(plansError.message);
+            toast.error(`Error fetching plans: ${JSON.stringify(plansError)}`);
         }
     }, [plansError]);
 

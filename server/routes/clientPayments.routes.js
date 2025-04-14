@@ -12,4 +12,7 @@ router.post("/", authUser, clientPaymentsValidators.validateCreateClientPayment,
 // verify client payment
 router.post("/verify", authUser, clientPaymentsValidators.validateVerifyClientPayment, validate, clientPaymentsControllers.verifyClientPayment);
 
+// get payment history
+router.get("/history", authUser, clientPaymentsControllers.getPaymentHistory);
+
 export default router;

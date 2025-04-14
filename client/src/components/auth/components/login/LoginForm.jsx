@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 
 const createLoginSchema = (loginMethod) => z.object({
-    loginId: loginMethod === 'email' 
+    loginId: loginMethod === 'email'
         ? z.string().email({ message: 'Please enter a valid email address' })
         : z.string().regex(/^[0-9]{10}$/, { message: 'Please enter a valid 10-digit mobile number' }),
     password: z.string().min(8, { message: 'Password must be at least 8 characters' }),
@@ -42,8 +42,8 @@ const LoginForm = ({ loginMethod }) => {
             // navigate('/', { replace: true });
             window.location.href = '/';
         },
-        onError: () => {
-            toast.error("Login failed");
+        onError: (error) => {
+            toast.error(`Error logging in: ${JSON.stringify(error)}`);
         }
     });
 

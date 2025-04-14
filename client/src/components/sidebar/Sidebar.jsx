@@ -1,11 +1,12 @@
 import * as React from "react"
-import { ChevronRight, Fingerprint, KeyRound, LayoutDashboard, ListTodo, MessageCircle, UserPlus } from 'lucide-react';
+import { ChevronRight, CreditCard, Fingerprint, KeyRound, LayoutDashboard, ListTodo, MessageCircle, UserPlus } from 'lucide-react';
 import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarProvider, SidebarRail, } from "@/components/ui/sidebar"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger, } from "@/components/ui/collapsible"
 import { Link, Outlet, useLocation } from "react-router-dom";
 import Navbar from "@/components/sidebar/Navbar";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage } from "../ui/avatar";
+import { MdGroups } from "react-icons/md";
 
 const data = {
     navMain: [
@@ -17,12 +18,33 @@ const data = {
             isCollapsible: false,
         },
         {
+            title: 'Payment History',
+            icon: CreditCard,
+            className: 'text-fuchsia-500',
+            link: '/payment-history',
+            isCollapsible: false,
+        },
+        {
             title: 'Invite Link',
             icon: UserPlus,
             className: 'text-indigo-500',
             link: '/invite-link',
             isCollapsible: false,
         },
+        {
+            title: 'Invite Links',
+            icon: UserPlus,
+            className: 'text-blue-500',
+            link: '/invite-links',
+            isCollapsible: false,
+        },
+        {
+            title: 'Team',
+            icon: MdGroups,
+            className: 'text-orange-500 size-6',
+            link: '/team',
+            isCollapsible: false,
+        }
     ]
 }
 

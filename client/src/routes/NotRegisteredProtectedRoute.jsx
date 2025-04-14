@@ -23,7 +23,7 @@ export const NotRegisteredProtectedRoute = () => {
 
   useEffect(() => {
     if (error) {
-      toast.error(error.message);
+      toast.error(`Error authenticating user: ${JSON.stringify(error)}`);
     }
   }, [error]);
 

@@ -4,7 +4,7 @@
 CREATE TABLE config (
     sr_no SERIAL PRIMARY KEY,
     id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
-    key VARCHAR(50) NOT NULL UNIQUE, -- MAX_DOWNLINE_DIETITIAN (max number of dietitian admin can have in his single line)
+    key VARCHAR(50) NOT NULL UNIQUE, -- MAX_CHAIN_DIETITIAN (max number of dietitian admin can have in his single line)
     type VARCHAR(50) NOT NULL CHECK (type IN ('string', 'number', 'boolean', 'json')), -- number
     name VARCHAR(50) NOT NULL, -- Max Downline Dietitian
     value INT NOT NULL -- 2
@@ -12,19 +12,26 @@ CREATE TABLE config (
 
 -- Users table
 CREATE TABLE users (
-	sr_no SERIAL PRIMARY KEY,
-	id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
-	username VARCHAR(50) NOT NULL UNIQUE,
-	email VARCHAR(100) NOT NULL UNIQUE,
-	phone VARCHAR(20) NOT NULL UNIQUE,
-	password VARCHAR(255) NOT NULL,
-    is_registered BOOLEAN NOT NULL DEFAULT FALSE,
-	-- role_id UUID NOT NULL REFERENCES roles(id),
-	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    sr_no SERIAL PRIMARY KEY,
+    id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(20) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    gender VARCHAR(20) NOT NULL CHECK (gender IN ('male', 'female', 'others')),
+    date_of_birth TIMESTAMP, -- minimum 15 year old
+    address VARCHAR(255),
+    city VARCHAR(20),
+    state VARCHAR(20),
+    is_registered BOOLEAN NOT NULL DEFAULT false,
+    role_id UUID NOT NULL REFERENCES roles(id),
+    parent_id UUID REFERENCES users(id),
     created_by UUID REFERENCES users(id),
-	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID REFERENCES users(id),
-    parent_id UUID REFERENCES users(id)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tokens table
@@ -32,19 +39,19 @@ CREATE TABLE tokens (
     sr_no SERIAL PRIMARY KEY,
     id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
     token TEXT UNIQUE NOT NULL,
-    token_type VARCHAR(50) NOT NULL, -- e.g., 'email_verification', 'phone_verification', 'password_reset', 'magic_link', 'invite_client
+    token_type VARCHAR(50) NOT NULL, -- e.g., 'email_verification', 'phone_verification', 'password_reset', 'magic_link', 'invite_client'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by UUID REFERENCES users(id),
     expires_at TIMESTAMP NOT NULL,
     is_consumed BOOLEAN DEFAULT FALSE,
-    additional_data JSONB, -- Store extra data like phone number, or other data
+    additional_data JSONB -- Store extra data like phone number, or other data
 );
 
 -- Roles table
 CREATE TABLE roles (
 	sr_no SERIAL PRIMARY KEY,
 	id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
-	key VARCHAR(50) NOT NULL CHECK (key IN ('admin', 'dietitian', 'client')),
+	key VARCHAR(50) NOT NULL CHECK (key IN ('admin', 'dietitian', 'client', 'corporate_client')),
     name VARCHAR(50) NOT NULL,
 	description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -64,7 +71,7 @@ CREATE TABLE plans (
 	description TEXT,
     months INT NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
-    discount DECIMAL(10, 2) NOT NULL,
+    offer_price DECIMAL(10, 2) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     points TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -89,6 +96,7 @@ CREATE TABLE client_payments (
     fee DECIMAL(10,2),
     tax DECIMAL(10,2),
     payment_method VARCHAR(100), -- E.g., UPI, Card, Net Banking
+	additional_data JSONB,
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -105,4 +113,26 @@ CREATE TABLE commission_distribution (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (max_downline, level, role_id)
+);
+
+-- Daily Fitness Logs table
+CREATE TABLE daily_fitness_logs (
+    sr_no SERIAL PRIMARY KEY,
+    id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    entry_date DATE NOT NULL, -- e.g., '2025-04-13'
+    height_cm DECIMAL(5,2),   -- Optional daily if you want to allow updated tracking
+    weight_kg DECIMAL(5,2),
+    calories_taken INT,
+    protein_g DECIMAL(5,2),
+    carbs_g DECIMAL(5,2),
+    fat_g DECIMAL(5,2),
+    water_liters DECIMAL(4,2),
+    steps INT,
+    sleep_hours DECIMAL(4,2),
+    mood VARCHAR(50), -- optional like 'happy', 'tired'
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, entry_date) -- One entry per day per user
 );

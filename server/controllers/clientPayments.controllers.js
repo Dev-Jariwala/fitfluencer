@@ -111,13 +111,13 @@ const handlePaymentCaptured = async ({ event, payload, signature }) => {
     const entity = payload.payment.entity;
     const paymentId = entity.id;
     const orderId = entity.order_id;
-    const amount = entity.amount;
+    const amount = entity.amount / 100;
     const currency = entity.currency;
     const paymentStatus = entity.status;
     const paymentMethod = entity.method;
-    const fee = entity.fee;
-    const tax = entity.tax;
-    const updatedPayment = await clientPaymentsRepositories.updateClientPaymentByOrderId(orderId, { amount, currency, status: paymentStatus, paymentId, signature, fee, tax, paymentMethod });
+    const fee = entity.fee / 100;
+    const tax = entity.tax / 100;
+    const updatedPayment = await clientPaymentsRepositories.updateClientPaymentByOrderId(orderId, { amount, currency, status: paymentStatus, paymentId, signature, fee, tax, paymentMethod, additionalData: payload.payment.entity });
     console.log("updatedPayment", updatedPayment);
     if (updatedPayment) {
         await userRepositories.markUserRegistered(updatedPayment.client_id);
@@ -130,13 +130,13 @@ const handlePaymentFailed = async ({ event, payload, signature }) => {
     const entity = payload.payment.entity;
     const paymentId = entity.id;
     const orderId = entity.order_id;
-    const amount = entity.amount;
+    const amount = entity.amount / 100;
     const currency = entity.currency;
     const paymentStatus = entity.status;
     const paymentMethod = entity.method;
-    const fee = entity.fee;
-    const tax = entity.tax;
-    await clientPaymentsRepositories.updateClientPaymentByOrderId(orderId, { amount, currency, status: paymentStatus, paymentId, signature, fee, tax, paymentMethod });
+    const fee = entity.fee / 100;
+    const tax = entity.tax / 100;
+    await clientPaymentsRepositories.updateClientPaymentByOrderId(orderId, { amount, currency, status: paymentStatus, paymentId, signature, fee, tax, paymentMethod, additionalData: payload.payment.entity });
 
 }
 
@@ -178,3 +178,12 @@ export const verifyClientPayment = async (req, res) => {
     }
 }
 
+export const getPaymentHistory = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const payments = await clientPaymentsRepositories.getPaymentHistory(userId);
+        res.status(200).json({ message: 'Payment history fetched successfully', data: payments });
+    } catch (error) {
+        handleError('getPaymentHistory', res, error);
+    }
+}

@@ -2,43 +2,11 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '../ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '../ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
+import { flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, useReactTable, } from '@tanstack/react-table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '../ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, } from '../ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from '../ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from '../ui/select';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { PencilIcon, InfoIcon, PlusIcon } from 'lucide-react';
@@ -134,7 +102,7 @@ const Config = () => {
       cell: ({ row }) => {
         const config = row.original;
         let displayValue = config.value;
-        
+
         // Format display value based on type
         if (config.type === 'boolean') {
           displayValue = config.value === 'true' ? 'Yes' : 'No';
@@ -146,12 +114,12 @@ const Config = () => {
                 {JSON.parse(config.value).toString().length > 30 ? '...' : ''}
               </span>
             );
-          // eslint-disable-next-line no-unused-vars
+            // eslint-disable-next-line no-unused-vars
           } catch (error) {
             displayValue = 'Invalid JSON';
           }
         }
-        
+
         return displayValue;
       },
     },
@@ -160,16 +128,16 @@ const Config = () => {
       header: 'Actions',
       cell: ({ row }) => (
         <div className="flex space-x-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => handleEdit(row.original)}
             title="Edit"
           >
             <PencilIcon className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             title="View Details"
           >
@@ -221,7 +189,7 @@ const Config = () => {
   const onSubmit = (data) => {
     if (editingConfig) {
       // Update existing config
-      setConfigs(configs.map(config => 
+      setConfigs(configs.map(config =>
         config.id === editingConfig.id ? { ...config, ...data } : config
       ));
     } else {
@@ -232,7 +200,7 @@ const Config = () => {
       };
       setConfigs([...configs, newConfig]);
     }
-    
+
     setIsDialogOpen(false);
   };
 
@@ -256,9 +224,9 @@ const Config = () => {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -351,8 +319,8 @@ const Config = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -379,17 +347,17 @@ const Config = () => {
                   <FormItem>
                     <FormLabel>Value</FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         placeholder={
-                          form.watch('type') === 'array' 
-                            ? '["item1", "item2"]' 
+                          form.watch('type') === 'array'
+                            ? '["item1", "item2"]'
                             : form.watch('type') === 'object'
-                              ? '{"key": "value"}' 
+                              ? '{"key": "value"}'
                               : form.watch('type') === 'boolean'
                                 ? 'true or false'
                                 : 'Value'
-                        } 
-                        {...field} 
+                        }
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />

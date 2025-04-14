@@ -15,6 +15,9 @@ import InviteLinkPage from "@/components/invite-link/InviteLinkPage";
 import Navbar from "@/components/sidebar/Navbar";
 import LogoutNavbar from "@/components/sidebar/LogoutNavbar";
 import LogoutLayout from "@/components/sidebar/LogoutLayout";
+import PaymentHistory from "@/components/payment-history/PaymentHistory";
+import InviteLinks from "@/components/invite-links/InviteLinks";
+import TeamPage from "@/components/team/TeamPage";
 const Routes = () => {
   const { setToken, setData } = useAuthStore();
 
@@ -68,6 +71,18 @@ const Routes = () => {
             {
               path: "invite-link",
               element: <InviteLinkPage />,
+            },
+            {
+              path: "payment-history",
+              element: <PaymentHistory />,
+            },
+            {
+              path: "invite-links",
+              element: <InviteLinks />,
+            },
+            {
+              path: "team",
+              element: <TeamPage />,
             }
           ]
         }

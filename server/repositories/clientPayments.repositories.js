@@ -56,11 +56,12 @@ CREATE TABLE client_payments (
     order_id VARCHAR(255) NOT NULL,
     receipt VARCHAR(255) NOT NULL,
     payment_id VARCHAR(255) UNIQUE, -- Razorpay Payment ID
-    status VARCHAR(20) NOT NULL CHECK (status IN ('success', 'failed', 'created')),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('captured', 'failed', 'created')),
     signature TEXT, -- Stored for record keeping/verification audit
     fee DECIMAL(10,2),
     tax DECIMAL(10,2),
     payment_method VARCHAR(100), -- E.g., UPI, Card, Net Banking
+	additional_data JSONB,
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -77,11 +78,20 @@ export const createClientPayment = async ({ clientId, planId, amount, currency, 
     return result;
 };
 
-export const updateClientPaymentByOrderId = async (orderId, { amount, currency, status, paymentId, signature, fee, tax, paymentMethod }) => {
+export const getPaymentHistory = async (clientId) => {
     const sql = `
-        UPDATE client_payments SET amount = $1, currency = $2, status = $3, payment_id = $4, signature = $5, fee = $6, tax = $7, payment_method = $8, updated_at = NOW() WHERE order_id = $9 RETURNING *
+        SELECT * FROM client_payments WHERE client_id = $1 ORDER BY created_at DESC
     `;
-    const values = [amount, currency, status, paymentId, signature, fee, tax, paymentMethod, orderId];
+    const values = [clientId];
+    const result = await query(sql, values);
+    return result;
+};
+
+export const updateClientPaymentByOrderId = async (orderId, { amount, currency, status, paymentId, signature, fee, tax, paymentMethod, additionalData }) => {
+    const sql = `
+        UPDATE client_payments SET amount = $1, currency = $2, status = $3, payment_id = $4, signature = $5, fee = $6, tax = $7, payment_method = $8, additional_data = $9, updated_at = NOW() WHERE order_id = $10 RETURNING *
+    `;
+    const values = [amount, currency, status, paymentId, signature, fee, tax, paymentMethod, additionalData, orderId];
     const [result] = await query(sql, values);
     return result;
 };

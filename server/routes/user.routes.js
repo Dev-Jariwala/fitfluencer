@@ -15,6 +15,8 @@ router.post("/generate-invite-link", authUser, userValidators.validateGenerateIn
 router.post("/verify-invite-link", userValidators.validateToken, validate, userControllers.verifyInviteLink);
 router.post("/register", userValidators.validateRegisterUser, validate, userControllers.registerUser);
 router.get("/can-invite-dietitian", authUser, userControllers.getCanInviteDietitian);
+router.get("/invite-links-history", authUser, userControllers.getInviteLinksHistory);
+router.get("/family-tree", authUser, userControllers.getMyFamilyTree);
 // Get user by ID
 router.get("/:id", authUser, userValidators.validateParamId, validate, userControllers.getUserById);
 export default router;

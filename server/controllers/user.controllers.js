@@ -1,8 +1,5 @@
-import "../logger.js";
-import winston from "winston";
 import passport from "passport";
 import jwt from "jsonwebtoken";
-import { query } from "../utils/query.js";
 import * as userRepositories from '../repositories/user.repositories.js';
 import * as configRepositories from '../repositories/config.repositories.js';
 import * as rolesRepositories from '../repositories/roles.repositories.js';
@@ -10,8 +7,8 @@ import { handleError } from "../utils/error.js";
 import * as userService from "../services/user.service.js";
 import bcrypt from "bcrypt";
 
-// userRepositories.createUser({username: 'admin', email: 'devjariwala.j@gmail.com', phone: '7990176865', password: 'admin', role_id: '20d1b304-17b3-4752-b545-fa96cb57eec7', created_by: null, parent_id: null}).then(console.log).catch(console.log)
-// rolesRepositories.createRole({key: 'admin', name: 'admin', description: 'admin', created_by: null}).then(console.log).catch(console.log)
+// userRepositories.createUser({username: 'admin', email: 'devjariwala.j@gmail.com', phone: '7990176865', password: '$2a$10$8hRSH5qfMUTQ0ZUFWdLQtO7/8d68hBOeL9OkWaMbYFuUja3DyRJP.', role_id: '20d1b304-17b3-4752-b545-fa96cb57eec7', created_by: null, parent_id: null}).then(console.log).catch(console.log)
+// rolesRepositories.createRole({key: 'client', name: 'Client', description: 'Client', created_by: null}).then(console.log).catch(console.log)
 export const loginUser = (req, res, next) => {
   try {
     passport.authenticate("local", { session: false }, (err, user, info) => {
@@ -101,8 +98,6 @@ const canInviteDietitian = async ({ userId, userRoleId }) => {
   const maxChainDietitian = await configRepositories.getConfigByKey('MAX_CHAIN_DIETITIAN');
   if (!maxChainDietitian) return { success: false, message: 'Max chain dietitian not found' };
   const userDepth = await userRepositories.getUserDepth(userId);
-  console.log("userDepth", userDepth);
-  console.log("maxChainDietitian", maxChainDietitian);
   if (userDepth >= maxChainDietitian?.value) return { success: false, message: 'Max chain dietitian reached' };
   return { success: true, message: 'User can invite users', data: { maxChainDietitian, userDepth } };
 }
@@ -194,7 +189,7 @@ export const registerUser = async (req, res) => {
     if (!role) return res.status(400).json({ message: 'Role not found' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await userRepositories.createUser({ username, email, phone, firstName, lastName, password: hashedPassword, roleId: roleId, createdBy: tokenData.created_by, parentId: tokenData.created_by, gender, dob, height, weight, fitnessGoal, address, city, state });
+    const user = await userRepositories.createUser({ username, email, phone, firstName, lastName, password: hashedPassword, roleId: roleId, createdBy: tokenData.created_by, parentId: tokenData.created_by, gender, dob, address, city, state });
     if (!user) return res.status(400).json({ message: 'Failed to create user' });
 
     await userRepositories.updateToken(tokenData.id, { token: tokenData.token, token_type: 'invite', expires_at: tokenData.expires_at, is_consumed: true, additional_data: { roleId, children_id: user.id } });
@@ -223,3 +218,22 @@ export const registerUser = async (req, res) => {
   }
 }
 
+export const getInviteLinksHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await userRepositories.getInviteLinksHistory(userId);
+    return res.status(200).json({ message: 'Invite links history fetched successfully', data: result });
+  } catch (error) {
+    handleError("getInviteLinksHistory", res, error);
+  }
+}
+
+export const getMyFamilyTree = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await userRepositories.getUserFamilyTree(userId);
+    return res.status(200).json({ message: 'Parent and children fetched successfully', data: result });
+  } catch (error) {
+    handleError("getMyFamilyTree", res, error);
+  }
+}

@@ -20,7 +20,7 @@ const LogoutNavbar = () => {
             return
         },
         onError: (error) => {
-            toast.error(error?.response?.data?.message || 'An error occurred');
+            toast.error(`Error logging out: ${JSON.stringify(error)}`);
         }
     })
     return (

@@ -2,36 +2,10 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '../ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '../ui/form';
+import { flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, useReactTable, } from '@tanstack/react-table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '../ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, } from '../ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from '../ui/form';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
@@ -131,16 +105,16 @@ const Plans = () => {
       header: 'Actions',
       cell: ({ row }) => (
         <div className="flex space-x-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => handleEdit(row.original)}
             title="Edit"
           >
             <PencilIcon className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             title="View Details"
           >
@@ -194,7 +168,7 @@ const Plans = () => {
   const onSubmit = (data) => {
     if (editingPlan) {
       // Update existing plan
-      setPlans(plans.map(plan => 
+      setPlans(plans.map(plan =>
         plan.id === editingPlan.id ? { ...plan, ...data } : plan
       ));
     } else {
@@ -205,7 +179,7 @@ const Plans = () => {
       };
       setPlans([...plans, newPlan]);
     }
-    
+
     setIsDialogOpen(false);
   };
 
@@ -229,9 +203,9 @@ const Plans = () => {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -310,11 +284,11 @@ const Plans = () => {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Plan description" 
+                      <Textarea
+                        placeholder="Plan description"
                         className="resize-none"
                         rows={3}
-                        {...field} 
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />

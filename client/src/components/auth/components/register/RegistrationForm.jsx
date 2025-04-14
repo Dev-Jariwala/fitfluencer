@@ -124,8 +124,7 @@ const RegistrationForm = ({ tokenData }) => {
       setTimeout(() => window.location.href = '/plans', 1500);
     },
     onError: (error) => {
-      const errorMessage = error.response.data.message || 'An error occurred';
-      toast.error(errorMessage);
+      toast.error(`Error registering: ${JSON.stringify(error)}`);
     }
   })
 

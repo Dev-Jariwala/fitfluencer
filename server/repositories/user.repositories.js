@@ -29,24 +29,26 @@ CREATE TABLE tokens (
     sr_no SERIAL PRIMARY KEY,
     id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
     token TEXT UNIQUE NOT NULL,
-    token_type VARCHAR(50) NOT NULL, -- e.g., 'email_verification', 'phone_verification', 'password_reset', 'magic_link', 'invite_client
+    token_type VARCHAR(50) NOT NULL, -- e.g., 'email_verification', 'phone_verification', 'password_reset', 'magic_link', 'invite_client'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by UUID REFERENCES users(id),
     expires_at TIMESTAMP NOT NULL,
     is_consumed BOOLEAN DEFAULT FALSE,
-    additional_data JSONB, -- Store extra data like phone number, or other data
+    additional_data JSONB -- Store extra data like phone number, or other data
 ); */
 
-export const createUser = async ({ username, email, phone,firstName, lastName, password, roleId, createdBy, parentId = null, gender, dob, height, weight, fitnessGoal, address, city, state }) => {
+export const createUser = async ({ username, email, phone, firstName, lastName, password, roleId, createdBy, parentId = null, gender, dob, address, city, state }) => {
     const sql = `
-        INSERT INTO users (username, email, phone, first_name, last_name, password, role_id, created_by, parent_id, gender, date_of_birth, height, weight, fitness_goal, address, city, state)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+        INSERT INTO users (username, email, phone, first_name, last_name, password, role_id, created_by, parent_id, gender, date_of_birth, address, city, state)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING *
     `;
-    const values = [username, email, phone, firstName, lastName, password, roleId, createdBy, parentId, gender, dob, height, weight, fitnessGoal, address, city, state];
+    const values = [username, email, phone, firstName, lastName, password, roleId, createdBy, parentId, gender, dob, address, city, state];
     const [result] = await query(sql, values);
     return result;
 };
+
+// createUser({username: 'Admin', phone: '7990176865', firstName:'Dev', lastName: 'Jariwala', password: '$2a$10$8hRSH5qfMUTQ0ZUFWdLQtO7/8d68hBOeL9OkWaMbYFuUja3DyRJP.', roleId: '0512c5dc-0493-4a41-b5a4-91016644ee6d', created_by: null, parent_id: null, gender: 'male', dob: '2002-11-15', address: '123 Main St', city: 'Anytown', state: 'CA'}).then(console.log).catch(console.log)
 
 export const getUserByLoginId = async (loginId) => {
     const sql = `
@@ -143,5 +145,69 @@ export const deleteToken = async (id) => {
     `;
     const values = [id];
     const [result] = await query(sql, values);
+    return result;
+};
+
+export const getInviteLinksHistory = async (userId) => {
+    const sql = `
+        SELECT * FROM tokens WHERE token_type = 'invite' AND created_by = $1 ORDER BY created_at DESC
+    `;
+    const values = [userId];
+    const result = await query(sql, values);
+    return result;
+};
+
+
+// here create a funnction that takes a userId and returns the parentId and all the childrens of the user
+export const getUserChildrensByUserId = async (userId) => {
+    console.log("userId in getUserChildrensByUserId", userId);
+    const sql = `
+        WITH RECURSIVE user_hierarchy AS (
+            SELECT *
+            FROM users
+            WHERE id = $1
+
+        UNION ALL
+
+            SELECT u.*
+            FROM users u
+            INNER JOIN user_hierarchy uh ON u.parent_id = uh.id
+        )
+        SELECT * FROM user_hierarchy WHERE id != $1;
+    `;
+    const values = [userId];
+    const result = await query(sql, values);
+    return result;
+};
+
+export const getUserFamilyTree = async (userId) => {
+    console.log("userId in getUserFamilyTree", userId);
+    const sql = `
+    WITH RECURSIVE ancestors AS (
+        SELECT u.id, u.username, u.phone, u.first_name, u.last_name, u.role_id, u.gender, u.parent_id
+        FROM users u
+        WHERE id = $1
+        UNION ALL
+        SELECT u.id, u.username, u.phone, u.first_name, u.last_name, u.role_id, u.gender, u.parent_id
+        FROM users u
+        INNER JOIN ancestors a ON a.parent_id = u.id
+    ),
+    descendants AS (
+        SELECT u.id, u.username, u.phone, u.first_name, u.last_name, u.role_id, u.gender, u.parent_id
+        FROM users u
+        WHERE id = $1
+        UNION ALL
+        SELECT u.id, u.username, u.phone, u.first_name, u.last_name, u.role_id, u.gender, u.parent_id
+        FROM users u
+        INNER JOIN descendants d ON u.parent_id = d.id
+    )
+    SELECT * FROM (
+        SELECT * FROM ancestors
+        UNION
+        SELECT * FROM descendants
+    ) AS family_tree;
+`;
+    const values = [userId];
+    const result = await query(sql, values);
     return result;
 };
