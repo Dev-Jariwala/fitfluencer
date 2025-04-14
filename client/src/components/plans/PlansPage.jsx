@@ -6,32 +6,10 @@ import { motion } from 'motion/react';
 import { Zap } from 'lucide-react';
 import { createClientPayment, verifyClientPayment } from '@/services/clientPaymentsService';
 import PricingCard from './components/PricingCard';
-import { useAuthStore } from '@/store/commonStore';
-import { authenticateUser } from '@/services/userService';
+import { usePlansStore } from '@/store/commonStore';
+
 const Plans = () => {
-    const setData = useAuthStore(state => state.setData);
-    const setToken = useAuthStore(state => state.setToken);
-
-    const { data: userAuthenticated, isLoading, error } = useQuery({
-        queryKey: ['authenticateUser'],
-        queryFn: async () => {
-            const data = await authenticateUser();
-            if (data?.isAuthenticated) {
-                setToken(data?.token);
-                setData(data?.data);
-            }
-            return data;
-        },
-        // enabled: false
-    });
-
-    const { data: plans, isLoading: isPlansLoading, error: plansError } = useQuery({
-        queryKey: ['plans'],
-        queryFn: async () => {
-            const data = await getPlans();
-            return data;
-        }
-    });
+    const plans = usePlansStore(state => state.plans);
 
     const loadScript = (src) => {
         return new Promise((resolve, reject) => {
@@ -72,13 +50,6 @@ const Plans = () => {
     useEffect(() => {
         loadScript('https://checkout.razorpay.com/v1/checkout.js');
     }, []);
-
-    useEffect(() => {
-        if (plansError) {
-            toast.error(`Error fetching plans: ${JSON.stringify(plansError)}`);
-        }
-    }, [plansError]);
-
 
     return (
         <section className="py-0" id="plans">
@@ -124,15 +95,13 @@ const Plans = () => {
                     </motion.p>
                 </motion.div>
 
-                {isPlansLoading ? <div className="flex justify-center items-center h-64">
-                    <div className="basic-loader"></div>
-                </div> : <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                     {plans && plans.length > 0 ? plans?.sort((a, b) => a.offer_price - b.offer_price).map((plan, i) => (
                         <PricingCard key={i} {...plan} handlePaynow={handlePaynow} />
                     )) : <div className="flex justify-center items-center h-64">
                         <div className="">No plans found</div>
                     </div>}
-                </div>}
+                </div>
             </div>
         </section>
     )

@@ -4,7 +4,7 @@ export const getChildrensByUserId = async (userId) => {
     try {
         const res = await axiosInstance({
             method: 'GET',
-            url: `/users/${userId}/childrens`,
+            url: `/common/users/${userId}/childrens`,
         });
         return res.data;
     } catch (error) {
@@ -16,7 +16,7 @@ export const getParentByUserId = async (userId) => {
     try {
         const res = await axiosInstance({
             method: 'GET',
-            url: `/users/${userId}/parent`,
+            url: `/common/users/${userId}/parent`,
         });
         return res.data;
     } catch (error) {

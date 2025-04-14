@@ -23,7 +23,7 @@ export const createPlan = async (req, res) => {
         const { name, description, points, months, price, offer_price } = req.body;
         const pointsArray = points.join('-points-separator-');
         const plan = await plansRepositories.createPlan({ name, description, points: pointsArray, months, price, offer_price, created_by: userId });
-        res.status(201).json(plan);
+        res.status(201).json({ success: true, message: 'Plan created successfully', data: plan });
     } catch (error) {
         handleError('createPlan', res, error);
     }
@@ -36,7 +36,7 @@ export const getPlans = async (req, res) => {
             const pointsArray = plan.points ? plan.points.split('-points-separator-') : [];
             return { ...plan, points: pointsArray };
         });
-        res.status(200).json(plansWithPoints);
+        res.status(200).json({ success: true, message: 'Plans fetched successfully', data: plansWithPoints });
     } catch (error) {
         handleError('getPlans', res, error);
     }
@@ -48,7 +48,7 @@ export const getPlanById = async (req, res) => {
         const plan = await plansRepositories.getPlanById(id);
         const pointsArray = plan.points ? plan.points.split('-points-separator-') : [];
         const planWithPoints = { ...plan, points: pointsArray };
-        res.status(200).json(planWithPoints);
+        res.status(200).json({ success: true, message: 'Plan fetched successfully', data: planWithPoints });
     } catch (error) {
         handleError('getPlanById', res, error);
     }
@@ -61,7 +61,7 @@ export const updatePlan = async (req, res) => {
         const { name, description, points, months, price, offer_price, is_active } = req.body;
         const pointsArray = points.join('-points-separator-');
         const plan = await plansRepositories.updatePlan(id, { name, description, points: pointsArray, months, price, offer_price, is_active, updated_by: userId });
-        res.status(200).json(plan);
+        res.status(200).json({ success: true, message: 'Plan updated successfully', data: plan });
     } catch (error) {
         handleError('updatePlan', res, error);
     }

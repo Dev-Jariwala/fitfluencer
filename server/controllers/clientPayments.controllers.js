@@ -96,17 +96,17 @@ export const createClientPayment = async (req, res) => {
         const razorpayInstance = createRazorpayInstance();
         const order = await razorpayInstance.orders.create(options);
         await clientPaymentsRepositories.createClientPayment({ clientId: req.user.id, planId: plan_id, amount: order.amount / 100, currency: order.currency, orderId: order.id, receipt: order.receipt, status: order.status, createdBy: req.user.id });
-        paymentLogger.info('Payment initiated successfully', { plan_id, plan_name: plan.name, user_id: req.user.id, username: req.user.username, order });
+        // paymentLogger.info('Payment initiated successfully', { plan_id, plan_name: plan.name, user_id: req.user.id, username: req.user.username, order });
 
         res.status(200).json(order);
     } catch (error) {
-        paymentLogger.info('Payment initiation error', { error: error.message, plan_id: req.body.plan_id, user_id: req.user?.id, username: req.user?.username });
+        // paymentLogger.info('Payment initiation error', { error: error.message, plan_id: req.body.plan_id, user_id: req.user?.id, username: req.user?.username });
         handleError('createClientPayment', res, error);
     }
 }
 
 const handlePaymentCaptured = async ({ event, payload, signature }) => {
-    paymentLogger.info('Payment captured', { event, payload, signature });
+    // paymentLogger.info('Payment captured', { event, payload, signature });
 
     const entity = payload.payment.entity;
     const paymentId = entity.id;
@@ -125,7 +125,7 @@ const handlePaymentCaptured = async ({ event, payload, signature }) => {
 }
 
 const handlePaymentFailed = async ({ event, payload, signature }) => {
-    paymentLogger.info('Payment failed', { event, payload, signature });
+    // paymentLogger.info('Payment failed', { event, payload, signature });
 
     const entity = payload.payment.entity;
     const paymentId = entity.id;

@@ -10,6 +10,7 @@ import configRoutes from "./routes/config.routes.js";
 import plansRoutes from "./routes/plans.routes.js";
 import commissionRoutes from "./routes/commission.routes.js";
 import clientPaymentsRoutes from "./routes/clientPayments.routes.js";
+import commonRoutes from "./routes/common.routes.js";
 import { verifyClientPayment } from './controllers/clientPayments.controllers.js';
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/config", configRoutes);
 app.use("/api/plans", plansRoutes);
 app.use("/api/commission", commissionRoutes);
 app.use("/api/client-payments", clientPaymentsRoutes);
+app.use("/api/common", commonRoutes);
 app.post('/webhook/razorpay', verifyClientPayment);
 const port = process.env.PORT;
 app.listen(port, () => {

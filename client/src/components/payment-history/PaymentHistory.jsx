@@ -6,13 +6,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button'
 import { toast } from 'react-hot-toast'
 import { format } from 'date-fns'
+import { usePlansStore } from '@/store/commonStore'
+import FormatPrice from '../common/FormatPrice'
+import { PAYMENT_METHOD, PAYMENT_STATUS } from './utils/constants'
 
 const PaymentHistory = () => {
     const [sorting, setSorting] = useState([]);
-    
+    const plans = usePlansStore(state => state.plans);
+
     const { data: paymentHistory, isLoading: isLoadingPaymentHistory, error: errorPaymentHistory } = useQuery({
         queryKey: ['paymentHistory'],
-        queryFn: async ()=>{
+        queryFn: async () => {
             const res = await getPaymentHistory();
             return res.data;
         }
@@ -22,44 +26,7 @@ const PaymentHistory = () => {
     const columns = [
         {
             accessorKey: 'sr_no',
-            header: 'Sr No',
-        },
-        {
-            accessorKey: 'payment_id',
-            header: 'Payment ID',
-            cell: ({ row }) => row.original.payment_id || 'N/A',
-        },
-        {
-            accessorKey: 'amount',
-            header: 'Amount',
-            cell: ({ row }) => {
-                const amount = parseFloat(row.original.amount);
-                const currency = row.original.currency;
-                return `${currency} ${amount.toLocaleString('en-IN', { 
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                })}`;
-            },
-        },
-        {
-            accessorKey: 'status',
-            header: 'Status',
-            cell: ({ row }) => (
-                <span className={`capitalize px-2 py-1 rounded-full text-xs ${
-                    row.original.status === 'captured' 
-                        ? 'bg-green-100 text-green-800' 
-                        : row.original.status === 'created'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
-                }`}>
-                    {row.original.status}
-                </span>
-            ),
-        },
-        {
-            accessorKey: 'payment_method',
-            header: 'Payment Method',
-            cell: ({ row }) => row.original.payment_method || 'N/A',
+            header: 'No.',
         },
         {
             accessorKey: 'created_at',
@@ -70,12 +37,60 @@ const PaymentHistory = () => {
             },
         },
         {
+            accessorKey: 'payment_id',
+            header: 'Payment ID',
+            cell: ({ row }) => row.original.payment_id || 'N/A',
+        },
+        {
+            accessorKey: 'plan_id',
+            header: 'Plan',
+            cell: ({ row }) => {
+                const plan = plans.find(plan => plan.id === row.original.plan_id);
+                return plan ? plan.name : 'N/A';
+            },
+        },
+        {
+            accessorKey: 'amount',
+            header: 'Amount',
+            cell: ({ row }) => {
+                const amount = parseFloat(row.original.amount);
+                const currency = row.original.currency;
+                return <FormatPrice price={amount} showRupee={currency === 'INR'} />
+            },
+        },
+        {
+            accessorKey: 'status',
+            header: 'Status',
+            cell: ({ row }) => {
+                const status = PAYMENT_STATUS[row.original.status];
+                return (
+                    <div className={`${status.color} px-2 py-1 rounded-md flex items-center gap-2 text-xs max-w-fit`}>
+                        <status.icon size={12} />
+                        {status.label}
+                    </div>
+                )
+            },
+        },
+        {
+            accessorKey: 'payment_method',
+            header: 'Payment Method',
+            cell: ({ row }) => {
+                const paymentMethod = PAYMENT_METHOD[row.original.payment_method ?? 'na'];
+                return (
+                    <div className={`${paymentMethod?.color} px-2 py-1 rounded-md flex items-center gap-2 text-xs max-w-fit`}>
+                        <paymentMethod.icon size={12} />
+                        {paymentMethod?.label}
+                    </div>
+                )
+            },
+        },
+        {
             accessorKey: 'receipt',
             header: 'Receipt',
             cell: ({ row }) => (
                 row.original.payment_id && (
-                    <Button 
-                        variant="outline" 
+                    <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => window.open(`/receipt/${row.original.id}`, '_blank')}
                     >
