@@ -7,6 +7,7 @@ import Navbar from "@/components/sidebar/Navbar";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { MdGroups } from "react-icons/md";
+import { useAuthStore, useUsersStore } from "@/store/commonStore";
 
 const data = {
     navMain: [
@@ -16,6 +17,7 @@ const data = {
             className: 'text-pink-500',
             link: '/',
             isCollapsible: false,
+            forRoles: ['admin', 'dietitian', 'client']
         },
         {
             title: 'Payment History',
@@ -23,13 +25,7 @@ const data = {
             className: 'text-fuchsia-500',
             link: '/payment-history',
             isCollapsible: false,
-        },
-        {
-            title: 'Invite Link',
-            icon: UserPlus,
-            className: 'text-indigo-500',
-            link: '/invite-link',
-            isCollapsible: false,
+            forRoles: ['client']
         },
         {
             title: 'Invite Links',
@@ -37,6 +33,7 @@ const data = {
             className: 'text-blue-500',
             link: '/invite-links',
             isCollapsible: false,
+            forRoles: ['admin', 'dietitian']
         },
         {
             title: 'Team',
@@ -44,11 +41,27 @@ const data = {
             className: 'text-orange-500 size-6',
             link: '/team',
             isCollapsible: false,
+            forRoles: ['admin', 'dietitian']
         }
     ]
 }
 
 const Sidebar = () => {
+
+    const user = useAuthStore(state => state.data);
+
+    const filteredData = React.useMemo(() => {
+        const result = { navMain: [] };
+        console.log(user?.role?.key);
+        const filteredNavMain = data.navMain.filter(item => {
+            if (item.forRoles.includes(user?.role?.key)) {
+                result.navMain.push(item);
+            }
+            return false;
+        })
+        return result;
+    }, [user]);
+    console.log(filteredData);
 
     const location = useLocation()
 
@@ -83,7 +96,7 @@ const Sidebar = () => {
                 <SidebarContent>
                     <SidebarGroup>
                         <SidebarMenu className="space-y-2">
-                            {data.navMain.map((item) => (
+                            {filteredData.navMain.map((item) => (
                                 <React.Fragment key={item.title}>
                                     {item.isCollapsible ? (
                                         <Collapsible asChild defaultOpen={isActive(item.link)} className="group/collapsible">

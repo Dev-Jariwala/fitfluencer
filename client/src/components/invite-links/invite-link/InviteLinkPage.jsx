@@ -122,7 +122,7 @@ const InviteLinkPage = () => {
         <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-950 dark:to-slate-900 py-10 px-4"
+            className="min-h-screen bg-background py-10 px-4"
         >
             <div className="max-w-6xl mx-auto">
                 {/* Header */}

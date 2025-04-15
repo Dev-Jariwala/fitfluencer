@@ -1,43 +1,50 @@
+import { getInviteLinksHistory } from '@/services/userService';
 import React, { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { getPaymentHistory } from '@/services/clientPaymentsService'
+import { useQuery } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 import { flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, useReactTable } from '@tanstack/react-table'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { toast } from 'react-hot-toast'
 import { format, subMonths } from 'date-fns'
-import { usePlansStore } from '@/store/commonStore'
-import FormatPrice from '../common/FormatPrice'
-import { PAYMENT_METHOD, PAYMENT_STATUS } from './utils/constants'
-import { Download, ArrowUpDown } from 'lucide-react'
-import PaymentSummary from './components/PaymentSummary'
-import PaymentFilters from './components/PaymentFilters'
+import { Copy, Check, Download, ArrowUpDown, Plus, Link2, RefreshCw } from 'lucide-react'
+import { useRolesStore } from '@/store/commonStore';
+import { INVITE_STATUS, ROLE_COLORS } from '../utils/constants';
+import InviteSummary from './InviteSummary';
+import InviteFilters from './InviteFilters';
 
-const PaymentHistory = () => {
+const InviteLinksTable = () => {
+    const roles = useRolesStore(state => state.roles);
     const [sorting, setSorting] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('all');
-    const plans = usePlansStore(state => state.plans);
+    const [roleFilter, setRoleFilter] = useState('all');
+    const [copiedId, setCopiedId] = useState(null);
 
-    const { data: paymentHistory, isLoading: isLoadingPaymentHistory, error: errorPaymentHistory } = useQuery({
-        queryKey: ['paymentHistory'],
+    const { data: inviteLinksHistory, isLoading: isLoadingInviteLinksHistory, error: errorInviteLinksHistory, refetch } = useQuery({
+        queryKey: ['inviteLinksHistory'],
         queryFn: async () => {
-            const res = await getPaymentHistory();
+            const res = await getInviteLinksHistory();
             return res.data;
         }
     });
 
+    // Copy invite link to clipboard
+    const copyToClipboard = (token, id) => {
+        navigator.clipboard.writeText(`${window.location.origin}/register?token=${token}`);
+        setCopiedId(id);
+        toast.success('Invite link copied to clipboard');
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
-    
-    // Filter payment history based on date range
-    const getFilteredPaymentsByDate = () => {
-        if (!paymentHistory) return [];
-        if (dateFilter === 'all') return paymentHistory;
-        
+    // Filter invites based on date range
+    const getFilteredInvitesByDate = () => {
+        if (!inviteLinksHistory) return [];
+        if (dateFilter === 'all') return inviteLinksHistory;
+
         const today = new Date();
         let filterDate;
-        
+
         switch (dateFilter) {
             case 'last30':
                 filterDate = subMonths(today, 1);
@@ -49,51 +56,64 @@ const PaymentHistory = () => {
                 filterDate = subMonths(today, 6);
                 break;
             default:
-                return paymentHistory;
+                return inviteLinksHistory;
         }
-        
-        return paymentHistory.filter(payment => new Date(payment.created_at) >= filterDate);
+
+        return inviteLinksHistory.filter(invite => new Date(invite.created_at) >= filterDate);
     };
-    
+
     // Handle CSV export
     const exportToCSV = () => {
-        if (!paymentHistory || paymentHistory.length === 0) {
-            toast.error('No payment data to export');
+        if (!inviteLinksHistory || inviteLinksHistory.length === 0) {
+            toast.error('No invite data to export');
             return;
         }
-        
+
         // Format data for CSV
-        const headers = ['Date', 'Payment ID', 'Plan', 'Amount', 'Status', 'Payment Method'];
-        const csvData = paymentHistory.map(payment => {
-            const date = format(new Date(payment.created_at), 'dd MMM yyyy, hh:mm a');
-            const plan = plans.find(p => p.id === payment.plan_id);
-            const planName = plan ? plan.name : 'N/A';
-            const status = PAYMENT_STATUS[payment.status]?.label || 'N/A';
-            const method = PAYMENT_METHOD[payment.payment_method ?? 'na']?.label || 'N/A';
-            
-            return [date, payment.payment_id || 'N/A', planName, payment.amount, status, method];
+        const headers = ['Sr No', 'Created', 'Expires', 'Token', 'Status', 'Role', 'User Joined'];
+
+        const csvData = inviteLinksHistory.map((invite, index) => {
+            const created = format(new Date(invite.created_at), 'dd MMM yyyy, hh:mm a');
+            const expires = format(new Date(invite.expires_at), 'dd MMM yyyy, hh:mm a');
+            const token = invite.token;
+
+            const now = new Date();
+            const status = invite.is_consumed
+                ? 'Used'
+                : new Date(invite.expires_at) < now
+                    ? 'Expired'
+                    : 'Active';
+
+            const roleId = invite.additional_data?.roleId;
+            const roleName = roleId
+                ? roles?.find(role => role?.id === roleId)?.name || 'N/A'
+                : 'N/A';
+
+            const userJoined = invite.is_consumed ? 'Yes' : 'No';
+
+            return [index + 1, created, expires, token, status, roleName, userJoined];
         });
-        
+
         // Create CSV content
         const csvContent = [
             headers.join(','),
             ...csvData.map(row => row.join(','))
         ].join('\n');
-        
+
         // Create and download file
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        link.setAttribute('download', `payment_history_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        link.setAttribute('download', `invite_links_${format(new Date(), 'yyyy-MM-dd')}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
-        toast.success('Payment history exported successfully');
+
+        toast.success('Invite links exported successfully');
     };
-    
+
     // Table columns definition
     const columns = [
         {
@@ -111,73 +131,41 @@ const PaymentHistory = () => {
             },
         },
         {
-            accessorKey: 'created_at',
+            accessorKey: 'token',
             header: ({ column }) => {
                 return (
                     <Button
                         variant="ghost"
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                     >
-                        Date
+                        Invite Link
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                 )
             },
             cell: ({ row }) => {
-                const date = new Date(row.original.created_at);
-                return format(date, 'dd MMM yyyy, hh:mm a');
-            },
-        },
-        {
-            accessorKey: 'payment_id',
-            header: ({ column }) => {
+                const token = row.original.token;
+                const link = `${window.location.origin}/register?token=${token}`;
+                const id = row.original.id;
+                const shortenedToken = `${link.substring(0, 15)}...${link.substring(link.length - 10)}`;
+
                 return (
-                    <Button
-                        variant="ghost"
-                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    >
-                        Payment ID
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                )
-            },
-            cell: ({ row }) => row.original.payment_id || 'N/A',
-        },
-        {
-            accessorKey: 'plan_id',
-            header: ({ column }) => {
-                return (
-                    <Button
-                        variant="ghost"
-                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    >
-                        Plan
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                )
-            },
-            cell: ({ row }) => {
-                const plan = plans.find(plan => plan.id === row.original.plan_id);
-                return plan ? plan.name : 'N/A';
-            },
-        },
-        {
-            accessorKey: 'amount',
-            header: ({ column }) => {
-                return (
-                    <Button
-                        variant="ghost"
-                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    >
-                        Amount
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                )
-            },
-            cell: ({ row }) => {
-                const amount = parseFloat(row.original.amount);
-                const currency = row.original.currency;
-                return <FormatPrice price={amount} showRupee={currency === 'INR'} />
+                    <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs">{shortenedToken}</span>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => copyToClipboard(token, id)}
+                            title="Copy invite link"
+                        >
+                            {copiedId === id ?
+                                <Check className="h-4 w-4 text-green-500" /> :
+                                <Copy className="h-4 w-4" />
+                            }
+                        </Button>
+                    </div>
+                );
             },
         },
         {
@@ -194,7 +182,17 @@ const PaymentHistory = () => {
                 )
             },
             cell: ({ row }) => {
-                const status = PAYMENT_STATUS[row.original.status];
+                const now = new Date();
+                let statusKey = 'active';
+
+                if (row.original.is_consumed) {
+                    statusKey = 'used';
+                } else if (new Date(row.original.expires_at) < now) {
+                    statusKey = 'expired';
+                }
+
+                const status = INVITE_STATUS[statusKey];
+
                 return (
                     <div className={`${status.color} px-2 py-1 rounded-md flex items-center gap-2 text-xs max-w-fit`}>
                         <status.icon size={12} />
@@ -204,56 +202,124 @@ const PaymentHistory = () => {
             },
         },
         {
-            accessorKey: 'payment_method',
+            accessorKey: 'created_at',
             header: ({ column }) => {
                 return (
                     <Button
                         variant="ghost"
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                     >
-                        Payment Method
+                        Created
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                 )
             },
             cell: ({ row }) => {
-                const paymentMethod = PAYMENT_METHOD[row.original.payment_method ?? 'na'];
-                return (
-                    <div className={`${paymentMethod?.color} px-2 py-1 rounded-md flex items-center gap-2 text-xs max-w-fit`}>
-                        <paymentMethod.icon size={12} />
-                        {paymentMethod?.label}
-                    </div>
-                )
+                const date = new Date(row.original.created_at);
+                return format(date, 'dd MMM yyyy, hh:mm a');
             },
         },
         {
-            accessorKey: 'receipt',
-            header: 'Receipt',
-            cell: ({ row }) => (
-                row.original.payment_id && (
+            accessorKey: 'expires_at',
+            header: ({ column }) => {
+                return (
                     <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(`/receipt/${row.original.id}`, '_blank')}
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                     >
-                        View
+                        Expires
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                 )
-            ),
+            },
+            cell: ({ row }) => {
+                const date = new Date(row.original.expires_at);
+                return format(date, 'dd MMM yyyy, hh:mm a');
+            },
+        },
+        {
+            id: 'role',
+            header: ({ column }) => {
+                return (
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    >
+                        Role
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                )
+            },
+            cell: ({ row }) => {
+                const roleId = row.original.additional_data?.roleId;
+                if (!roleId) return "N/A";
+
+                const role = roles?.find(role => role?.id === roleId);
+                if (!role) return "N/A";
+
+                const roleName = role.name.toLowerCase();
+                const colorClass = ROLE_COLORS[roleName] || ROLE_COLORS.default;
+
+                return (
+                    <div className={`${colorClass} px-2 py-1 rounded-md text-xs max-w-fit`}>
+                        {role.name}
+                    </div>
+                );
+            },
+        },
+        {
+            accessorKey: 'user',
+            header: 'User',
+            cell: ({ row }) => {
+                return row.original.is_consumed && row.original.additional_data?.children_id
+                    ? (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1"
+                            onClick={() => window.open(`/user/${row.original.additional_data.children_id}`, '_blank')}
+                        >
+                            <Check className="h-3 w-3" />
+                            View User
+                        </Button>
+                    )
+                    : row.original.is_consumed
+                        ? <span className="text-green-600 text-xs">Registered</span>
+                        : <span className="text-gray-400 text-xs">Not registered</span>;
+            },
         }
     ];
 
     // Apply filters to data
     const filteredData = React.useMemo(() => {
-        let filtered = getFilteredPaymentsByDate();
-        
-        if (statusFilter) {
-            filtered = filtered.filter(payment => payment.status === statusFilter);
+        let filtered = getFilteredInvitesByDate();
+
+        if (statusFilter !== 'all') {
+            const now = new Date();
+
+            filtered = filtered.filter(invite => {
+                if (statusFilter === 'used') {
+                    return invite.is_consumed;
+                } else if (statusFilter === 'expired') {
+                    return !invite.is_consumed && new Date(invite.expires_at) < now;
+                } else if (statusFilter === 'active') {
+                    return !invite.is_consumed && new Date(invite.expires_at) >= now;
+                }
+                return true;
+            });
         }
-        
-        return filtered;
-    }, [paymentHistory, statusFilter, dateFilter]);
-    
+
+        if (roleFilter !== 'all') {
+            filtered = filtered.filter(invite => {
+                return invite.additional_data?.roleId === roleFilter;
+            });
+        }
+
+        return filtered.map((item) => ({
+            ...item
+        }));
+    }, [inviteLinksHistory, statusFilter, dateFilter, roleFilter]);
+
     // Table instance
     const table = useReactTable({
         data: filteredData || [],
@@ -281,49 +347,47 @@ const PaymentHistory = () => {
     });
 
     useEffect(() => {
-        if (errorPaymentHistory) {
-            toast.error(`Error fetching payment history: ${JSON.stringify(errorPaymentHistory)}`);
+        if (errorInviteLinksHistory) {
+            toast.error(`Error fetching invite links: ${JSON.stringify(errorInviteLinksHistory)}`);
         }
-    }, [errorPaymentHistory]);
+    }, [errorInviteLinksHistory]);
 
     return (
-        <div className="space-y-6 px-5 pb-10 pt-5">
-            {/* Page Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-4">
-                <h2 className="text-2xl font-semibold tracking-tight">Payment History</h2>
-            </div>
-            
-            {/* Payment Statistics */}
-            <PaymentSummary paymentHistory={paymentHistory} />
-            
+        <>
+            {/* Invite Statistics */}
+            <InviteSummary inviteLinksHistory={inviteLinksHistory} />
+
             {/* Filters and Export Section */}
             <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center border p-4 rounded-lg bg-card shadow-sm">
-                <PaymentFilters 
+                <InviteFilters
                     globalFilter={globalFilter}
                     setGlobalFilter={setGlobalFilter}
                     statusFilter={statusFilter}
                     setStatusFilter={setStatusFilter}
                     dateFilter={dateFilter}
                     setDateFilter={setDateFilter}
+                    roleFilter={roleFilter}
+                    setRoleFilter={setRoleFilter}
+                    roles={roles}
                 />
-                
+
                 <Button
-                    variant="outline"
+                    variant="secondary-outline"
                     size="sm"
                     onClick={exportToCSV}
-                    disabled={!paymentHistory || paymentHistory.length === 0}
-                    className="flex items-center gap-2 w-full lg:w-auto "
+                    disabled={!inviteLinksHistory || inviteLinksHistory.length === 0}
+                    className="flex items-center gap-2 w-full lg:w-auto"
                 >
                     <Download className="h-4 w-4" />
                     Export CSV
                 </Button>
             </div>
 
-            {isLoadingPaymentHistory ? (
+            {isLoadingInviteLinksHistory ? (
                 <div className="h-48 flex items-center justify-center bg-card rounded-lg border shadow-sm">
                     <div className="flex flex-col items-center gap-2">
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary border-r-2"></div>
-                        <p className="text-sm text-muted-foreground">Loading payment history...</p>
+                        <p className="text-sm text-muted-foreground">Loading invite links...</p>
                     </div>
                 </div>
             ) : (
@@ -365,8 +429,8 @@ const PaymentHistory = () => {
                                     <TableRow>
                                         <TableCell colSpan={columns.length} className="h-24 text-center">
                                             <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                                                <p>No payment history found.</p>
-                                                <p className="text-sm">Try adjusting your filters.</p>
+                                                <p>No invite links found.</p>
+                                                <p className="text-sm">Try adjusting your filters or create new invites.</p>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -389,7 +453,7 @@ const PaymentHistory = () => {
                                 of <span className="font-medium">{filteredData?.length || 0}</span> entries
                             </span>
                         </div>
-                        
+
                         <div className="flex items-center gap-1">
                             <Button
                                 variant="outline"
@@ -411,7 +475,7 @@ const PaymentHistory = () => {
                                 <span className="sr-only">Go to previous page</span>
                                 <span className="text-xs">‹</span>
                             </Button>
-                            
+
                             {/* Page numbers */}
                             <div className="flex items-center gap-1 mx-2">
                                 {Array.from(
@@ -442,7 +506,7 @@ const PaymentHistory = () => {
                                     }
                                 )}
                             </div>
-                            
+
                             <Button
                                 variant="outline"
                                 size="icon"
@@ -467,8 +531,8 @@ const PaymentHistory = () => {
                     </div>
                 </>
             )}
-        </div>
+        </>
     )
 }
 
-export default PaymentHistory
+export default InviteLinksTable;

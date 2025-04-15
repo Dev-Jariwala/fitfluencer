@@ -6,7 +6,6 @@ import Sidebar from "@/components/sidebar/Sidebar";
 import PageNotFound from "@/components/errors/PageNotFound";
 import RegisterPage from "@/components/auth/RegisterPage";
 import PlansPage from "@/components/plans/PlansPage";
-import InviteLinkPage from "@/components/invite-link/InviteLinkPage";
 import LogoutLayout from "@/components/sidebar/LogoutLayout";
 import PaymentHistory from "@/components/payment-history/PaymentHistory";
 import InviteLinks from "@/components/invite-links/InviteLinks";
@@ -45,10 +44,6 @@ const Routes = () => {
             {
               path: "/",
               element: <Home />,
-            },
-            {
-              path: "invite-link",
-              element: <InviteLinkPage />,
             },
             {
               path: "payment-history",

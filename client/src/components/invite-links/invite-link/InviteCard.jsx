@@ -27,7 +27,7 @@ const InviteCard = ({ title, subtitle, description, icon, iconBgClass, iconTextC
             whileHover="hover"
             whileTap="tap"
             variants={cardVariants}
-            className={`bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-lg relative ${activeCard === cardType ? `ring-2 ${ringColor}` : ''}`}
+            className={`bg-background rounded-2xl overflow-hidden shadow-lg relative ${activeCard === cardType ? `ring-2 ${ringColor}` : ''}`}
         >
             <div className={`absolute inset-0 ${cardAccentClass} opacity-60`}></div>
 
