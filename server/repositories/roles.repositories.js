@@ -24,6 +24,8 @@ export const createRole = async ({key, name, description, created_by}) => {
     return result;
 };
 
+// createRole({key: 'client', name: 'Client', description: 'Client'}).then(console.log).catch(console.error);
+
 export const getRoles = async () => {
     const sql = `
         SELECT * FROM roles

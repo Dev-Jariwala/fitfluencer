@@ -7,7 +7,7 @@ import Navbar from "@/components/sidebar/Navbar";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { MdGroups } from "react-icons/md";
-import { useAuthStore, useUsersStore } from "@/store/commonStore";
+import { useAuthStore } from "@/store/commonStore";
 
 const data = {
     navMain: [
@@ -42,10 +42,17 @@ const data = {
             link: '/team',
             isCollapsible: false,
             forRoles: ['admin', 'dietitian']
+        },
+        {
+            title: 'Income',
+            icon: CreditCard,
+            className: 'text-fuchsia-500',
+            link: '/income',
+            isCollapsible: false,
+            forRoles: ['admin', 'dietitian']
         }
     ]
 }
-
 const Sidebar = () => {
 
     const user = useAuthStore(state => state.data);
@@ -61,7 +68,6 @@ const Sidebar = () => {
         })
         return result;
     }, [user]);
-    console.log(filteredData);
 
     const location = useLocation()
 

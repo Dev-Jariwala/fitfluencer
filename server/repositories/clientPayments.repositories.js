@@ -61,11 +61,28 @@ CREATE TABLE client_payments (
     fee DECIMAL(10,2),
     tax DECIMAL(10,2),
     payment_method VARCHAR(100), -- E.g., UPI, Card, Net Banking
-	additional_data JSONB,
+    additional_data JSONB,
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);*/
+);
+
+-- Income table
+CREATE TABLE income (
+    sr_no SERIAL PRIMARY KEY,
+    id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    amount DECIMAL(10,2) NOT NULL,
+    commission_percentage DECIMAL(5,2) NOT NULL,
+    layer INT NOT NULL,
+    fee DECIMAL(10,2) NOT NULL,
+    payment_id UUID NOT NULL REFERENCES client_payments(id),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, payment_id),
+    UNIQUE (payment_id, layer)
+);
+*/
 
 export const createClientPayment = async ({ clientId, planId, amount, currency, orderId, receipt, status, createdBy }) => {
     const sql = `
@@ -86,6 +103,32 @@ export const getPaymentHistory = async (clientId) => {
     const result = await query(sql, values);
     return result;
 };
+
+export const getClientPaymentsByParentId = async (parentId, limit, offset, startDate, endDate, paymentStatus) => {
+    const sql = `
+        WITH RECURSIVE child_users AS (
+            -- Base case: direct children
+            SELECT id FROM users WHERE parent_id = $1
+            UNION ALL
+            -- Recursive case: children of children
+            SELECT u.id FROM users u
+            JOIN child_users cu ON u.parent_id = cu.id
+        )
+        SELECT cp.*, concat(u.sr_no, ' - ', u.first_name, ' ', u.last_name) as username, concat(u2.sr_no, ' - ', u2.first_name, ' ', u2.last_name) as parent_username FROM client_payments cp
+        LEFT JOIN users u ON cp.client_id = u.id
+        LEFT JOIN users u2 ON u.parent_id = u2.id
+        WHERE cp.client_id IN (SELECT id FROM child_users)
+        AND cp.created_at BETWEEN $2 AND $3 
+        AND cp.status = $4 
+        ORDER BY cp.created_at DESC 
+        LIMIT $5 OFFSET $6
+    `;
+    const values = [parentId, startDate, endDate, paymentStatus, limit, offset];
+    const result = await query(sql, values);
+    return result;
+};
+
+// getClientPaymentsByParentId('13fa5e28-cae8-4d5c-8d40-84bc9a8286c9', 10, 0, '2025-04-01', '2025-04-30', 'captured').then(console.log).catch(console.error);
 
 export const updateClientPaymentByOrderId = async (orderId, { amount, currency, status, paymentId, signature, fee, tax, paymentMethod, additionalData }) => {
     const sql = `

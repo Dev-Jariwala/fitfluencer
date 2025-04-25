@@ -1,6 +1,9 @@
 import * as clientPaymentsRepositories from '../repositories/clientPayments.repositories.js';
 import * as plansRepositories from '../repositories/plans.repositories.js';
 import * as userRepositories from '../repositories/user.repositories.js';
+import * as rolesRepositories from '../repositories/roles.repositories.js';
+import * as incomeRepositories from '../repositories/income.repositories.js';
+import * as userService from '../services/user.service.js';
 import crypto from 'crypto';
 import { handleError } from '../utils/error.js';
 import createRazorpayInstance from '../config/razorpay.js';
@@ -9,6 +12,7 @@ import { validateWebhookSignature } from 'razorpay/dist/utils/razorpay-utils.js'
 const errorLogger = winston.loggers.get("error-logger");
 const paymentLogger = winston.loggers.get("payment-logger");
 import { v4 as uuidv4 } from 'uuid';
+
 /* -- Users table
 CREATE TABLE users (
     sr_no SERIAL PRIMARY KEY,
@@ -85,7 +89,7 @@ export const createClientPayment = async (req, res) => {
                 user_id: req.user.id,
                 username: req.user.username
             });
-            return res.status(404).json({ message: 'Plan not found' });
+            return res.status(404).json({ success: false, message: 'Plan not found', data: null });
         }
         const receipt = uuidv4();
         const options = {
@@ -121,6 +125,8 @@ const handlePaymentCaptured = async ({ event, payload, signature }) => {
     console.log("updatedPayment", updatedPayment);
     if (updatedPayment) {
         await userRepositories.markUserRegistered(updatedPayment.client_id);
+        const income = await userService.createUserParentHierarchyIncome(updatedPayment.client_id, updatedPayment.id, amount, fee);
+        console.log("income", income);
     }
 }
 
@@ -152,7 +158,7 @@ export const verifyClientPayment = async (req, res) => {
                 signature,
                 body: req.body
             });
-            return res.status(400).json({ message: 'Payment verification failed - Invalid signature', success: false });
+            return res.status(400).json({ success: false, message: 'Payment verification failed - Invalid signature', data: null });
         }
 
         const { event, payload } = req.body;
@@ -182,8 +188,103 @@ export const getPaymentHistory = async (req, res) => {
     try {
         const userId = req.user.id;
         const payments = await clientPaymentsRepositories.getPaymentHistory(userId);
-        res.status(200).json({ message: 'Payment history fetched successfully', data: payments });
+        res.status(200).json({ success: true, message: 'Payment history fetched successfully', data: payments });
     } catch (error) {
         handleError('getPaymentHistory', res, error);
+    }
+}
+
+export const getClientPaymentsByParentId = async (req, res) => {
+    try {
+        const userId = req.params.userId === 'me' ? req.user.id : req.params.userId;
+        const rawMonth = req.query.month || (new Date().getMonth() + 1);
+        const rawYear = req.query.year || new Date().getFullYear();
+
+        const month = parseInt(rawMonth); // ensure it's an integer
+        const year = parseInt(rawYear);
+
+        // Construct proper start and end dates
+        const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0)); // start of the month in UTC
+        const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));  // end of the month in UTC
+
+        const limit = req.query.limit || 10;
+        const page = req.query.page || 1;
+
+        const limitInt = parseInt(limit);
+        const pageInt = parseInt(page);
+        const offset = (pageInt - 1) * limitInt;
+
+        const user = await userRepositories.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found', data: null });
+        }
+
+        const userRole = await rolesRepositories.getRoleById(user.role_id);
+        if (!userRole) {
+            return res.status(404).json({ success: false, message: 'User role not found', data: null });
+        }
+        if (!['admin', 'dietitian'].includes(userRole.key)) {
+            return res.status(403).json({ success: false, message: 'User is not an admin or dietitian', data: null });
+        }
+
+        const payments = await clientPaymentsRepositories.getClientPaymentsByParentId(userId, limitInt, offset, startDate, endDate, 'captured');
+        console.log("payments", payments);
+        const paymentIds = payments.map(payment => payment.id);
+        const incomes = await incomeRepositories.getIncomesByPaymentIds(paymentIds);
+
+        const paymentsWithIncomes = payments.map(payment => {
+            const paymentWithIncomes = { ...payment, incomes: incomes.filter(income => income.payment_id === payment.id) };
+            return paymentWithIncomes;
+        });
+
+        res.status(200).json({ success: true, message: 'Client payments fetched successfully', data: paymentsWithIncomes });
+
+    } catch (error) {
+        handleError('getClientPaymentsByParentId', res, error);
+    }
+}
+
+export const getIncomeSummaryByParentId = async (req, res) => {
+    try {
+        const userId = req.params.userId === 'me' ? req.user.id : req.params.userId;
+        const rawMonth = req.query.month || (new Date().getMonth() + 1);
+        const rawYear = req.query.year || new Date().getFullYear();
+
+        const month = parseInt(rawMonth);
+        const year = parseInt(rawYear);
+
+        // Construct proper start and end dates
+        const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0)); // start of the month in UTC
+        const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));  // end of the month in UTC
+
+        const user = await userRepositories.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found', data: null });
+        }
+
+        const userRole = await rolesRepositories.getRoleById(user.role_id);
+        if (!userRole) {
+            return res.status(404).json({ success: false, message: 'User role not found', data: null });
+        }
+        if (!['admin', 'dietitian'].includes(userRole.key)) {
+            return res.status(403).json({ success: false, message: 'User is not an admin or dietitian', data: null });
+        }
+
+        const incomeSummary = await incomeRepositories.getIncomeSummaryByParentId(userId, startDate, endDate);
+        
+        res.status(200).json({ 
+            success: true, 
+            message: 'Income summary fetched successfully', 
+            data: incomeSummary || {
+                totalClients: 0,
+                totalIncome: 0,
+                totalFee: 0,
+                personalIncome: 0,
+                downlineIncome: 0,
+                averagePerClient: 0
+            }
+        });
+    } catch (error) {
+        handleError('getIncomeSummaryByParentId', res, error);
     }
 }

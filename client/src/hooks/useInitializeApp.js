@@ -53,7 +53,8 @@ export const useInitializeApp = () => {
         queryKey: ['users'],
         queryFn: async () => {
             const users = [];
-            const childrenData = await getChildrensByUserId('me');
+            // this will be usefull when we have to get only immediate parent-child relationship
+            /* const childrenData = await getChildrensByUserId('me');
             const parentData = await getParentByUserId('me');
             console.log(childrenData, parentData);
             if (childrenData?.data && childrenData?.data?.length > 0) {
@@ -61,12 +62,13 @@ export const useInitializeApp = () => {
             }
             if (parentData?.data && parentData?.success) {
                 users.push(parentData?.data);
-            }
-            console.log(users);
-            setUsers(users);
-            return users;
+            } */
+            const familyTree = await getMyFamilyTree();
+            console.log(familyTree);
+            setUsers(familyTree?.data);
+            return familyTree?.data;
         },
-        enabled: !!token, // Only run if user is authenticated
+        enabled: false, // Only run if user is authenticated
     });
 
     // Handle errors

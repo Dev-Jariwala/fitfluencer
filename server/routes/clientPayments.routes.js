@@ -15,4 +15,10 @@ router.post("/verify", authUser, clientPaymentsValidators.validateVerifyClientPa
 // get payment history
 router.get("/history", authUser, clientPaymentsControllers.getPaymentHistory);
 
+// get client payments by parent id
+router.get("/parent/:userId", authUser, clientPaymentsControllers.getClientPaymentsByParentId);
+
+// get income summary by parent id
+router.get("/income-summary/:userId", authUser, clientPaymentsControllers.getIncomeSummaryByParentId);
+
 export default router;

@@ -103,16 +103,47 @@ CREATE TABLE client_payments (
 );
 
 -- Commission Distribution table
-CREATE TABLE commission_distribution (
+CREATE TABLE commission (
     sr_no SERIAL PRIMARY KEY,
     id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
-    max_downline INT NOT NULL,  -- This will allow us to track the number of downlines
-    level INT NOT NULL CHECK (level BETWEEN 0 AND max_downline),  -- 1 for first-layer, 2 for second-layer, etc.
+    type VARCHAR(50) CHECK (type IN ('dietitian', 'corporate_client')),
+    total_downline INT NOT NULL,  -- This will allow us to track the number of downlines
+    for_downline INT NOT NULL CHECK (for_downline BETWEEN 0 AND total_downline),  -- 1 for first-downline, 2 for second-downline, etc.
     role_id UUID NOT NULL REFERENCES roles(id),
     commission_percentage DECIMAL(5,2) NOT NULL CHECK (commission_percentage BETWEEN 0 AND 100),  -- Percentage for commission
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (max_downline, level, role_id)
+    UNIQUE (type,total_downline, for_downline, role_id)
+);
+
+-- Income table
+CREATE TABLE income (
+    sr_no SERIAL PRIMARY KEY,
+    id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    amount DECIMAL(10,2) NOT NULL,
+    commission_percentage DECIMAL(5,2) NOT NULL,
+    fee DECIMAL(10,2) NOT NULL,
+    payment_id UUID NOT NULL REFERENCES client_payments(id),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, payment_id)
+);
+
+-- Payouts table
+CREATE TABLE payouts (
+    sr_no SERIAL PRIMARY KEY,
+    id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    amount DECIMAL(10,2) NOT NULL,
+    month INT NOT NULL,
+    year INT NOT NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'paid', 'failed', 'cancelled')),
+    note TEXT,
+    payout_timestamp TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, month, year)
 );
 
 -- Daily Fitness Logs table

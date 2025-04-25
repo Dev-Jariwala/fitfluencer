@@ -68,3 +68,28 @@ export const getPaymentHistory = async () => {
         throw handleApiError(error);
     }
 }
+
+export const getClientPaymentsByParentId = async (userId, limit, offset, month, year) => {
+    try {
+        const res = await axiosInstance({
+            method: 'GET',
+            url: `/client-payments/parent/${userId}?limit=${limit}&offset=${offset}&month=${month}&year=${year}`,
+        });
+        return res.data;
+    } catch (error) {
+        throw handleApiError(error);
+    }
+}
+
+export const getIncomeSummaryByParentId = async (userId, month, year) => {
+    try {
+        const res = await axiosInstance({
+            method: 'GET',
+            url: `/client-payments/income-summary/${userId}?month=${month}&year=${year}`,
+        });
+        return res.data;
+    } catch (error) {
+        throw handleApiError(error);
+    }
+}
+

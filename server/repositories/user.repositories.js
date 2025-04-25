@@ -48,7 +48,7 @@ export const createUser = async ({ username, email, phone, firstName, lastName, 
     return result;
 };
 
-// createUser({username: 'Admin', phone: '7990176865', firstName:'Dev', lastName: 'Jariwala', password: '$2a$10$8hRSH5qfMUTQ0ZUFWdLQtO7/8d68hBOeL9OkWaMbYFuUja3DyRJP.', roleId: '0512c5dc-0493-4a41-b5a4-91016644ee6d', created_by: null, parent_id: null, gender: 'male', dob: '2002-11-15', address: '123 Main St', city: 'Anytown', state: 'CA'}).then(console.log).catch(console.log)
+// createUser({username: 'Admin', phone: '7990176865', firstName:'Dev', lastName: 'Jariwala', password: '$2a$10$8hRSH5qfMUTQ0ZUFWdLQtO7/8d68hBOeL9OkWaMbYFuUja3DyRJP.', roleId: "d821e4c9-b55e-4245-9582-1ea1fcf4d363", created_by: null, parent_id: null, gender: 'male', dob: '2002-11-15', address: '123 Main St', city: 'Anytown', state: 'CA'}).then(console.log).catch(console.log)
 
 export const getUserByLoginId = async (loginId) => {
     const sql = `
@@ -77,7 +77,6 @@ export const updateUser = async (id, { username, email, phone, password, role_id
 };
 
 export const markUserRegistered = async (id) => {
-    console.log("id in markUserRegistered", id);
     const sql = `
         UPDATE users SET is_registered = TRUE WHERE id = $1
     `;
@@ -85,6 +84,7 @@ export const markUserRegistered = async (id) => {
     const [result] = await query(sql, values);
     return result;
 };
+
 export const getUserDepth = async (userId) => {
     const sql = `
         WITH RECURSIVE hierarchy AS (
@@ -211,3 +211,27 @@ export const getUserFamilyTree = async (userId) => {
     const result = await query(sql, values);
     return result;
 };
+
+export const getUserParentHierarchy = async (userId) => {
+    // Get all parents in the hierarchy chain
+    const sql = `
+        WITH RECURSIVE parent_hierarchy AS (
+            SELECT id, parent_id, username, first_name, last_name, role_id
+            FROM users
+            WHERE id = $1
+            
+            UNION ALL
+            
+            SELECT u.id, u.parent_id, u.username, u.first_name, u.last_name, u.role_id
+            FROM users u
+            INNER JOIN parent_hierarchy ph ON u.id = ph.parent_id
+            WHERE u.id IS NOT NULL
+        )
+        SELECT id, parent_id, username, first_name, last_name, role_id
+        FROM parent_hierarchy 
+        WHERE id != $1;
+    `;
+
+    const result = await query(sql, [userId]);
+    return result;
+}

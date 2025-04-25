@@ -2,15 +2,17 @@ import { AiOutlineMenu } from "react-icons/ai";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { useSidebar } from "../ui/sidebar";
-import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import Theme from "../ui/theme/theme";
 import { Button } from "../ui/button";
 import { logoutUser } from "@/services/userService";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/commonStore";
+import { LogOut, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const { toggleSidebar } = useSidebar();
   const logout = useAuthStore(state => state.logout);
   const logoutUserMutation = useMutation({
@@ -19,7 +21,7 @@ const Navbar = () => {
       toast.success(data?.data?.message || 'Logout successful');
       logout();
       window.location.href = '/login';
-      return 
+      return
     },
     onError: (error) => {
       toast.error(`Error logging out: ${JSON.stringify(error)}`);
@@ -42,7 +44,14 @@ const Navbar = () => {
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => logoutUserMutation.mutate()} >Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/my-profile')} >
+              <User className="w-4 h-4 mr-2" />
+              <span>My Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => logoutUserMutation.mutate()} >
+              <LogOut className="w-4 h-4 mr-2" />
+              <span>Logout</span>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

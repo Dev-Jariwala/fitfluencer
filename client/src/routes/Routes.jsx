@@ -11,6 +11,8 @@ import PaymentHistory from "@/components/payment-history/PaymentHistory";
 import InviteLinks from "@/components/invite-links/InviteLinks";
 import TeamPage from "@/components/team/TeamPage";
 import useInitializeApp from "@/hooks/useInitializeApp";
+import IncomePage from "@/components/income/IncomePage";
+import MyProfile from "@/components/my-profile/MyProfile";
 
 const Routes = () => {
   // Initialize application data (authenticated and non-authenticated)
@@ -56,6 +58,14 @@ const Routes = () => {
             {
               path: "team",
               element: <TeamPage />,
+            },
+            {
+              path: "income",
+              element: <IncomePage />,
+            },
+            {
+              path: "my-profile",
+              element: <MyProfile />,
             }
           ]
         }

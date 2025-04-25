@@ -119,17 +119,21 @@ export const generateInviteLink = async (req, res, next) => {
     const userRoleId = req.user.role_id;
     const { roleId } = req.body;
 
-    const role = await rolesRepositories.getRoleById(userRoleId);
-    if (!role) return res.status(400).json({ message: 'User role not found' });
+    const userRole = await rolesRepositories.getRoleById(userRoleId);
+    if (!userRole) return res.status(400).json({ message: 'User role not found' });
 
-    if (!['admin', 'dietitian'].includes(role.key)) {
+    const role = await rolesRepositories.getRoleById(roleId);
+    if (!role) return res.status(400).json({ message: 'Role not found' });
+
+    if (!['admin', 'dietitian'].includes(userRole.key)) {
       return res.status(400).json({ message: 'User is not authorized to generate invite link' });
     }
 
     const maxChainDietitian = await configRepositories.getConfigByKey('MAX_CHAIN_DIETITIAN');
     if (!maxChainDietitian) return res.status(400).json({ message: 'Max chain dietitian not found' });
     const userDepth = await userRepositories.getUserDepth(userId);
-    if (userDepth >= maxChainDietitian?.value) return res.status(400).json({ message: 'Max chain dietitian reached' });
+    console.log(userDepth, maxChainDietitian?.value, userRole.key);
+    if (userDepth >= maxChainDietitian?.value && role.key === 'dietitian') return res.status(400).json({ message: 'Max chain dietitian reached' });
 
     const expiresIn = 15 * 60 * 1000;
 
