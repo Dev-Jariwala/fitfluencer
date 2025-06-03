@@ -67,7 +67,6 @@ export const updateIncome = async (id, { userId, amount, commissionPercentage, p
 };
 
 export const getIncomeSummaryByParentId = async (parentId, startDate, endDate) => {
-    console.log(parentId, startDate, endDate);
     const sql = `
         WITH RECURSIVE child_users AS (
             SELECT id FROM users WHERE parent_id = $1

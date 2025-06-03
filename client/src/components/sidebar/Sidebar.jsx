@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ChevronRight, CreditCard, Fingerprint, KeyRound, LayoutDashboard, ListTodo, MessageCircle, UserPlus } from 'lucide-react';
+import { ChevronRight, CreditCard, Fingerprint, KeyRound, LayoutDashboard, ListTodo, MessageCircle, Soup, UserPlus } from 'lucide-react';
 import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarProvider, SidebarRail, } from "@/components/ui/sidebar"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger, } from "@/components/ui/collapsible"
 import { Link, Outlet, useLocation } from "react-router-dom";
@@ -50,6 +50,14 @@ const data = {
             link: '/income',
             isCollapsible: false,
             forRoles: ['admin', 'dietitian']
+        },
+        {
+            title: 'Meals',
+            icon: Soup,
+            className: 'text-green-100',
+            link: '/meals',
+            isCollapsible: false,
+            forRoles: ['admin']
         }
     ]
 }
@@ -59,7 +67,6 @@ const Sidebar = () => {
 
     const filteredData = React.useMemo(() => {
         const result = { navMain: [] };
-        console.log(user?.role?.key);
         const filteredNavMain = data.navMain.filter(item => {
             if (item.forRoles.includes(user?.role?.key)) {
                 result.navMain.push(item);

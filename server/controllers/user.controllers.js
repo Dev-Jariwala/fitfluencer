@@ -8,9 +8,10 @@ import * as userService from "../services/user.service.js";
 import bcrypt from "bcrypt";
 
 // userRepositories.createUser({username: 'admin', email: 'devjariwala.j@gmail.com', phone: '7990176865', password: '$2a$10$8hRSH5qfMUTQ0ZUFWdLQtO7/8d68hBOeL9OkWaMbYFuUja3DyRJP.', role_id: '20d1b304-17b3-4752-b545-fa96cb57eec7', created_by: null, parent_id: null}).then(console.log).catch(console.log)
-// rolesRepositories.createRole({key: 'client', name: 'Client', description: 'Client', created_by: null}).then(console.log).catch(console.log)
+// rolesRepositories.createRole({ key: 'admin', name: 'Admin', description: 'Admin', created_by: null }).then(console.log).catch(console.log);
 export const loginUser = (req, res, next) => {
   try {
+    console.log(req.body);
     passport.authenticate("local", { session: false }, (err, user, info) => {
       if (err) return res.status(400).json(err);
       if (!user) return res.status(401).json({ message: "User not found" });

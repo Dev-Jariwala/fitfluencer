@@ -13,6 +13,7 @@ import TeamPage from "@/components/team/TeamPage";
 import useInitializeApp from "@/hooks/useInitializeApp";
 import IncomePage from "@/components/income/IncomePage";
 import MyProfile from "@/components/my-profile/MyProfile";
+import MealsPage from "@/components/meals/MealsPage";
 
 const Routes = () => {
   // Initialize application data (authenticated and non-authenticated)
@@ -66,6 +67,10 @@ const Routes = () => {
             {
               path: "my-profile",
               element: <MyProfile />,
+            },
+            {
+              path: "meals",
+              element: <MealsPage />,
             }
           ]
         }

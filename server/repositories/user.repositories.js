@@ -48,7 +48,7 @@ export const createUser = async ({ username, email, phone, firstName, lastName, 
     return result;
 };
 
-// createUser({username: 'Admin', phone: '7990176865', firstName:'Dev', lastName: 'Jariwala', password: '$2a$10$8hRSH5qfMUTQ0ZUFWdLQtO7/8d68hBOeL9OkWaMbYFuUja3DyRJP.', roleId: "d821e4c9-b55e-4245-9582-1ea1fcf4d363", created_by: null, parent_id: null, gender: 'male', dob: '2002-11-15', address: '123 Main St', city: 'Anytown', state: 'CA'}).then(console.log).catch(console.log)
+// createUser({username: 'Admin', phone: '7990176865', firstName:'Dev', lastName: 'Jariwala', password: '$2a$10$8hRSH5qfMUTQ0ZUFWdLQtO7/8d68hBOeL9OkWaMbYFuUja3DyRJP.', roleId: "2a0b7d62-3414-4c29-885f-67c2be965727", created_by: null, parent_id: null, gender: 'male', dob: '2002-11-15', address: '123 Main St', city: 'Anytown', state: 'CA'}).then(console.log).catch(console.log)
 
 export const getUserByLoginId = async (loginId) => {
     const sql = `

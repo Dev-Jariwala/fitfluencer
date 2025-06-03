@@ -228,7 +228,6 @@ export const getClientPaymentsByParentId = async (req, res) => {
         }
 
         const payments = await clientPaymentsRepositories.getClientPaymentsByParentId(userId, limitInt, offset, startDate, endDate, 'captured');
-        console.log("payments", payments);
         const paymentIds = payments.map(payment => payment.id);
         const incomes = await incomeRepositories.getIncomesByPaymentIds(paymentIds);
 

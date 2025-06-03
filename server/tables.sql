@@ -167,3 +167,23 @@ CREATE TABLE daily_fitness_logs (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_id, entry_date) -- One entry per day per user
 );
+
+-- Meals table
+CREATE TABLE meals (
+    sr_no SERIAL PRIMARY KEY,
+    id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    quantity DECIMAL(6,2) NOT NULL, -- e.g., 100.00
+    unit VARCHAR(20) NOT NULL CHECK (unit IN ('g', 'ml', 'cup', 'piece', 'serving')),
+    calories INT,
+    protein DECIMAL(5,2),
+    carbs DECIMAL(5,2),
+    fat DECIMAL(5,2),
+    attachment_url VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_by UUID REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID REFERENCES users(id)
+);
